@@ -1,0 +1,18 @@
+{
+  "name": "co-authy",
+  "version": "0.0.1",
+  "repository": "seegno/co-authy",
+  "description": "An authy client based on generators",
+  "keywords": [
+    "authy",
+    "co"
+  ],
+  "devDependencies": {
+    "chai": "^1.9.1",
+    "mocha": "*"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "is-json": "^1.1.3"
+  }
+}

@@ -2,10 +2,17 @@
   "name": "co-authy",
   "version": "0.0.1",
   "repository": "seegno/co-authy",
-  "description": "An authy client based on generators",
+  "description": "An Authy client based on generators",
   "keywords": [
+    "auth",
+    "authentication",
     "authy",
-    "co"
+    "client",
+    "co",
+    "two-factor",
+    "two factor",
+    "2 factor",
+    "2fa"
   ],
   "scripts": {
     "test": "NODE_ENV=test ./node_modules/.bin/mocha --harmony-generators"

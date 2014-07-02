@@ -77,6 +77,70 @@ describe('client', function() {
 });
 
 describe('registerUser()', function() {
+  it('should support `country_code` in the ISO 3166-1 alpha-2 format', function *() {
+    nock('http://sandbox-api.authy.com')
+      .post('/protected/json/users/new?api_key=fooqux', {
+        'user[email]': 'foo@bar.com',
+        'user[cellphone]': '+351911234567',
+        'user[country_code]': '351'
+      })
+      .reply(200, {
+        user: {
+          id: 1635
+        }
+      });
+
+    yield client.registerUser('foo@bar.com', '+351911234567', 'PT');
+  });
+
+  it('should support `country_code` in the ISO 3166-1 alpha-3 numeric format', function *() {
+    nock('http://sandbox-api.authy.com')
+      .post('/protected/json/users/new?api_key=fooqux', {
+        'user[email]': 'foo@bar.com',
+        'user[cellphone]': '+351911234567',
+        'user[country_code]': '351'
+      })
+      .reply(200, {
+        user: {
+          id: 1635
+        }
+      });
+
+    yield client.registerUser('foo@bar.com', '+351911234567', 'PRT');
+  });
+
+  it('should support the special International Networks `country_code` (+882)', function *() {
+    nock('http://sandbox-api.authy.com')
+      .post('/protected/json/users/new?api_key=fooqux', {
+        'user[email]': 'foo@bar.com',
+        'user[cellphone]': '+351911234567',
+        'user[country_code]': '882'
+      })
+      .reply(200, {
+        user: {
+          id: 1635
+        }
+      });
+
+    yield client.registerUser('foo@bar.com', '+351911234567', '882');
+  });
+
+  it('should support the special International Networks `country_code` (+883)', function *() {
+    nock('http://sandbox-api.authy.com')
+      .post('/protected/json/users/new?api_key=fooqux', {
+        'user[email]': 'foo@bar.com',
+        'user[cellphone]': '+351911234567',
+        'user[country_code]': '883'
+      })
+      .reply(200, {
+        user: {
+          id: 1635
+        }
+      });
+
+    yield client.registerUser('foo@bar.com', '+351911234567', '883');
+  });
+
   it('should default the `country_code` to USA (+1) if it is missing', function *() {
     nock('http://sandbox-api.authy.com')
       .post('/protected/json/users/new?api_key=fooqux', {

@@ -4,9 +4,7 @@ An Authy client for node.js using generators via [co](https://github.com/visionm
 
 ## Status
 
-[![Build Status](https://travis-ci.org/seegno/co-authy.svg)](https://travis-ci.org/seegno/co-authy)
-
-[![NPM version](https://badge.fury.io/js/co-authy.svg)](http://badge.fury.io/js/co-authy)
+[![Build Status](https://travis-ci.org/seegno/co-authy.svg)](https://travis-ci.org/seegno/co-authy) [![NPM version](https://badge.fury.io/js/co-authy.svg)](http://badge.fury.io/js/co-authy)
 
 
 ## Installation
@@ -31,6 +29,16 @@ Initialize a new Authy Client.
 ### registerUser(email, cellphone, country_code)
 
 Enable two-factor authentication on a user. You should store the returned `authy_id` in your database for subsequent calls.
+
+The `country_code`can be one of the following:
+
+* A valid calling code (e.g. 351);
+* An ISO 3166-1 alpha-2 code (e.g. PT);
+* An ISO 3166-1 alpha-3 code (e.g. PTR);
+
+The library automatically converts conforming country codes to the corresponding calling code. For instance, if the `country_code` passed is `PT`, then the calling code will be set to `351` without requiring extra work from the developer. Defaults to US (`1`) if omitted.
+
+The list of countries is sourced from the awesome [countries project](https://github.com/mledoze/countries) by [@mdledoze](https://github.com/mledoze) with added support for special International Networks codes +882 and +883.
 
 ### verifyToken(authy_id, token, options)
 

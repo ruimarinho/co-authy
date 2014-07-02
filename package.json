@@ -1,6 +1,6 @@
 {
   "name": "co-authy",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "repository": "seegno/co-authy",
   "description": "An Authy client based on generators",
   "keywords": [

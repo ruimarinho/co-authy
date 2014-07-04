@@ -13,17 +13,17 @@ var util = require('util');
 
 function HttpAuthyError(message, body) {
   var attributes = {
-    body: body
+    body: body || {}
   };
 
   message = message || 'Http error';
 
-  if (body.message) {
-    message = body.message;
+  if (attributes.body.message) {
+    message = attributes.body.message;
   }
 
-  if (body.errors) {
-    attributes.errors = body.errors;
+  if (attributes.body.errors) {
+    attributes.errors = attributes.body.errors;
   }
 
   AuthyError.call(this, message, attributes);

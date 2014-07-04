@@ -44,7 +44,7 @@ describe('client', function() {
       nock('http://sandbox-api.authy.com')
         .post('/protected/json/users/new?api_key=foo', {
           'user[email]': 'foo@bar.com',
-          'user[cellphone]': '+351911234567',
+          'user[cellphone]': '408-550-3542',
           'user[country_code]': '1'
         })
         .reply(401, {
@@ -58,7 +58,7 @@ describe('client', function() {
       var clientWithInvalidKey = new AuthyClient('foo', 'http://sandbox-api.authy.com');
 
       try {
-        yield clientWithInvalidKey.registerUser('foo@bar.com', '+351911234567');
+        yield clientWithInvalidKey.registerUser('foo@bar.com', '408-550-3542');
 
         should.fail();
       } catch (e) {
@@ -81,7 +81,7 @@ describe('registerUser()', function() {
     nock('http://sandbox-api.authy.com')
       .post('/protected/json/users/new?api_key=fooqux', {
         'user[email]': 'foo@bar.com',
-        'user[cellphone]': '+351911234567',
+        'user[cellphone]': '911234567',
         'user[country_code]': '351'
       })
       .reply(200, {
@@ -90,14 +90,14 @@ describe('registerUser()', function() {
         }
       });
 
-    yield client.registerUser('foo@bar.com', '+351911234567', 'PT');
+    yield client.registerUser('foo@bar.com', '911234567', 'PT');
   });
 
   it('should support `country_code` in the ISO 3166-1 alpha-3 numeric format', function *() {
     nock('http://sandbox-api.authy.com')
       .post('/protected/json/users/new?api_key=fooqux', {
         'user[email]': 'foo@bar.com',
-        'user[cellphone]': '+351911234567',
+        'user[cellphone]': '911234567',
         'user[country_code]': '351'
       })
       .reply(200, {
@@ -106,14 +106,14 @@ describe('registerUser()', function() {
         }
       });
 
-    yield client.registerUser('foo@bar.com', '+351911234567', 'PRT');
+    yield client.registerUser('foo@bar.com', '911234567', 'PRT');
   });
 
   it('should support the special International Networks `country_code` (+882)', function *() {
     nock('http://sandbox-api.authy.com')
       .post('/protected/json/users/new?api_key=fooqux', {
         'user[email]': 'foo@bar.com',
-        'user[cellphone]': '+351911234567',
+        'user[cellphone]': '13300655',
         'user[country_code]': '882'
       })
       .reply(200, {
@@ -122,14 +122,14 @@ describe('registerUser()', function() {
         }
       });
 
-    yield client.registerUser('foo@bar.com', '+351911234567', '882');
+      yield client.registerUser('foo@bar.com', '13300655', '882');
   });
 
   it('should support the special International Networks `country_code` (+883)', function *() {
     nock('http://sandbox-api.authy.com')
       .post('/protected/json/users/new?api_key=fooqux', {
         'user[email]': 'foo@bar.com',
-        'user[cellphone]': '+351911234567',
+        'user[cellphone]': '510012345',
         'user[country_code]': '883'
       })
       .reply(200, {
@@ -138,14 +138,14 @@ describe('registerUser()', function() {
         }
       });
 
-    yield client.registerUser('foo@bar.com', '+351911234567', '883');
+    yield client.registerUser('foo@bar.com', '510012345', '883');
   });
 
   it('should default the `country_code` to USA (+1) if it is missing', function *() {
     nock('http://sandbox-api.authy.com')
       .post('/protected/json/users/new?api_key=fooqux', {
         'user[email]': 'foo@bar.com',
-        'user[cellphone]': '+351911234567',
+        'user[cellphone]': '5627562233',
         'user[country_code]': '1'
       })
       .reply(200, {
@@ -154,14 +154,14 @@ describe('registerUser()', function() {
         }
       });
 
-    yield client.registerUser('foo@bar.com', '+351911234567');
+    yield client.registerUser('foo@bar.com', '5627562233');
   });
 
   it('should throw an error if the authy `id` is not returned', function *() {
     nock('http://sandbox-api.authy.com')
       .post('/protected/json/users/new?api_key=fooqux', {
         'user[email]': 'foo@bar.com',
-        'user[cellphone]': '+351911234567',
+        'user[cellphone]': '911234567',
         'user[country_code]': '351'
       })
       .reply(200, {
@@ -171,7 +171,7 @@ describe('registerUser()', function() {
       });
 
     try {
-      yield client.registerUser('foo@bar.com', '+351911234567', '351');
+      yield client.registerUser('foo@bar.com', '911234567', '351');
     } catch (e) {
       e.should.be.instanceOf(AuthyError);
       e.message.should.equal('`user.id` is missing');
@@ -183,7 +183,7 @@ describe('registerUser()', function() {
     nock('http://sandbox-api.authy.com')
       .post('/protected/json/users/new?api_key=fooqux', {
         'user[email]': 'foo@bar.com',
-        'user[cellphone]': '+351911234567',
+        'user[cellphone]': '911234567',
         'user[country_code]': '351'
       })
       .reply(200, {
@@ -192,7 +192,7 @@ describe('registerUser()', function() {
         }
       });
 
-    var response = yield client.registerUser('foo@bar.com', '+351911234567', '351');
+    var response = yield client.registerUser('foo@bar.com', '911234567', '351');
 
     response.user.id.should.equal(1635);
   });
@@ -200,7 +200,7 @@ describe('registerUser()', function() {
   describe('client validation', function() {
     it('should throw an error if `email` is missing', function *() {
       try {
-        yield client.registerUser(undefined, '+351123456789');
+        yield client.registerUser(undefined, '123456789');
 
         should.fail();
       } catch (e) {
@@ -211,7 +211,7 @@ describe('registerUser()', function() {
 
     it('should throw an error if `email` is invalid', function *() {
       try {
-        yield client.registerUser('foo', '+351123456789');
+        yield client.registerUser('foo', '123456789');
 
         should.fail();
       } catch (e) {
@@ -232,6 +232,18 @@ describe('registerUser()', function() {
       }
     });
 
+    it('should throw an error if `cellphone` invalid', function *() {
+      try {
+        yield client.registerUser('foo@bar.com', 'FOO', '351');
+
+        should.fail();
+      } catch (e) {
+        e.should.be.instanceOf(ValidationFailedAuthyError);
+        e.errors.cellphone.should.have.length(1);
+        e.errors.cellphone[0].show().assert.should.equal('PhoneNumber');
+      }
+    });
+
     it('should throw an error if `cellphone` is invalid', function *() {
       try {
         yield client.registerUser('foo@bar.com', '');
@@ -245,7 +257,7 @@ describe('registerUser()', function() {
 
     it('should throw an error if `country_code` is not supported', function *() {
       try {
-        yield client.registerUser('foo@bar.com', '+351123456789', '12345');
+        yield client.registerUser('foo@bar.com', '123456789', '12345');
 
         should.fail();
       } catch (e) {
@@ -263,7 +275,7 @@ describe('registerUser()', function() {
       nock('http://sandbox-api.authy.com')
         .post('/protected/json/users/new?api_key=fooqux', {
           'user[email]': '',
-          'user[cellphone]': '+351123456789',
+          'user[cellphone]': '123456789',
           'user[country_code]': '351'
         })
         .reply(400, {
@@ -277,7 +289,7 @@ describe('registerUser()', function() {
         });
 
       try {
-        yield client.registerUser('', '+351123456789', '351');
+        yield client.registerUser('', '123456789', '351');
 
         should.fail();
       } catch (e) {
@@ -295,7 +307,7 @@ describe('registerUser()', function() {
       nock('http://sandbox-api.authy.com')
         .post('/protected/json/users/new?api_key=fooqux', {
           'user[email]': 'foo',
-          'user[cellphone]': '+351123456789',
+          'user[cellphone]': '123456789',
           'user[country_code]': '351'
         })
         .reply(400, {
@@ -309,7 +321,7 @@ describe('registerUser()', function() {
         });
 
       try {
-        yield client.registerUser('foo', '+351123456789', '351');
+        yield client.registerUser('foo', '123456789', '351');
 
         should.fail();
       } catch (e) {
@@ -391,7 +403,7 @@ describe('registerUser()', function() {
       nock('http://sandbox-api.authy.com')
         .post('/protected/json/users/new?api_key=fooqux', {
           'user[email]': 'foo@bar.com',
-          'user[cellphone]': '+351123456789',
+          'user[cellphone]': '123456789',
           'user[country_code]': '12345'
         })
         .reply(400, {
@@ -405,7 +417,7 @@ describe('registerUser()', function() {
         });
 
       try {
-        yield client.registerUser('foo@bar.com', '+351123456789', '12345');
+        yield client.registerUser('foo@bar.com', '123456789', '12345');
 
         should.fail();
       } catch (e) {
@@ -484,10 +496,12 @@ describe('verifyToken()', function() {
 
   describe('remote validation', function() {
     it('should throw an error if the `token` is invalid', function *() {
+      sinon.stub(Validator.prototype, 'validate', function() { return true; });
+
       nock('http://sandbox-api.authy.com')
         .post('/protected/json/users/new?api_key=fooqux', {
           'user[email]': 'foo@bar.com',
-          'user[cellphone]': '+351911234567',
+          'user[cellphone]': '911234567',
           'user[country_code]': '351'
         })
         .reply(200, {
@@ -496,7 +510,7 @@ describe('verifyToken()', function() {
           }
         });
 
-      var response = yield client.registerUser('foo@bar.com', '+351911234567', '351');
+      var response = yield client.registerUser('foo@bar.com', '911234567', '351');
       var authyId = response.user.id;
 
       nock('http://sandbox-api.authy.com')
@@ -517,6 +531,8 @@ describe('verifyToken()', function() {
       } catch (e) {
         e.should.be.instanceOf(InvalidTokenAuthyError);
       }
+
+      Validator.prototype.validate.restore();
     });
   });
 
@@ -524,7 +540,7 @@ describe('verifyToken()', function() {
     nock('http://sandbox-api.authy.com')
       .post('/protected/json/users/new?api_key=fooqux', {
         'user[email]': 'foo@bar.com',
-        'user[cellphone]': '+351911234567',
+        'user[cellphone]': '911234567',
         'user[country_code]': '351'
       })
       .reply(200, {
@@ -533,9 +549,9 @@ describe('verifyToken()', function() {
         }
       });
 
-    var response = yield client.registerUser('foo@bar.com', '+351911234567', '351');
+    var response = yield client.registerUser('foo@bar.com', '911234567', '351');
     var authyId = response.user.id;
-    var validToken = '0000000';
+    var validToken = '1234567';
 
     nock('http://sandbox-api.authy.com')
       .get('/protected/json/verify/' + validToken + '/' + authyId + '?api_key=fooqux&force=true')
@@ -552,7 +568,7 @@ describe('verifyToken()', function() {
     nock('http://sandbox-api.authy.com')
       .post('/protected/json/users/new?api_key=fooqux', {
         'user[email]': 'foo@bar.com',
-        'user[cellphone]': '+351911234567',
+        'user[cellphone]': '911234567',
         'user[country_code]': '351'
       })
       .reply(200, {
@@ -561,9 +577,9 @@ describe('verifyToken()', function() {
         }
       });
 
-    var response = yield client.registerUser('foo@bar.com', '+351911234567', '351');
+    var response = yield client.registerUser('foo@bar.com', '911234567', '351');
     var authyId = response.user.id;
-    var validToken = '0000000';
+    var validToken = '1234567';
 
     nock('http://sandbox-api.authy.com')
       .get('/protected/json/verify/' + validToken + '/' + authyId + '?api_key=fooqux')
@@ -666,7 +682,7 @@ describe('requestSms()', function() {
     nock('http://sandbox-api.authy.com')
       .post('/protected/json/users/new?api_key=fooqux', {
         'user[email]': 'foo@bar.com',
-        'user[cellphone]': '+351911234567',
+        'user[cellphone]': '911234567',
         'user[country_code]': '351'
       })
       .reply(200, {
@@ -675,7 +691,7 @@ describe('requestSms()', function() {
         }
       });
 
-    var response = yield client.registerUser('foo@bar.com', '+351911234567', '351');
+    var response = yield client.registerUser('foo@bar.com', '911234567', '351');
     var authyId = response.user.id;
 
     nock('http://sandbox-api.authy.com')
@@ -699,7 +715,7 @@ describe('requestSms()', function() {
     nock('http://sandbox-api.authy.com')
       .post('/protected/json/users/new?api_key=fooqux', {
         'user[email]': 'foo@bar.com',
-        'user[cellphone]': '+351911234567',
+        'user[cellphone]': '911234567',
         'user[country_code]': '351'
       })
       .reply(200, {
@@ -708,7 +724,7 @@ describe('requestSms()', function() {
         }
       });
 
-    var response = yield client.registerUser('foo@bar.com', '+351911234567', '351');
+    var response = yield client.registerUser('foo@bar.com', '911234567', '351');
     var authyId = response.user.id;
 
     nock('http://sandbox-api.authy.com')
@@ -731,7 +747,7 @@ describe('requestSms()', function() {
     nock('http://sandbox-api.authy.com')
       .post('/protected/json/users/new?api_key=fooqux', {
         'user[email]': 'foo@bar.com',
-        'user[cellphone]': '+351911234567',
+        'user[cellphone]': '911234567',
         'user[country_code]': '351'
       })
       .reply(200, {
@@ -740,7 +756,7 @@ describe('requestSms()', function() {
         }
       });
 
-    var response = yield client.registerUser('foo@bar.com', '+351911234567', '351');
+    var response = yield client.registerUser('foo@bar.com', '911234567', '351');
     var authyId = response.user.id;
 
     nock('http://sandbox-api.authy.com')
@@ -763,7 +779,7 @@ describe('requestSms()', function() {
     nock('http://sandbox-api.authy.com')
       .post('/protected/json/users/new?api_key=fooqux', {
         'user[email]': 'foo@bar.com',
-        'user[cellphone]': '+351911234567',
+        'user[cellphone]': '911234567',
         'user[country_code]': '351'
       })
       .reply(200, {
@@ -772,7 +788,7 @@ describe('requestSms()', function() {
         }
       });
 
-    var response = yield client.registerUser('foo@bar.com', '+351911234567', '351');
+    var response = yield client.registerUser('foo@bar.com', '911234567', '351');
     var authyId = response.user.id;
 
     nock('http://sandbox-api.authy.com')
@@ -869,7 +885,7 @@ describe('requestCall()', function() {
     nock('http://sandbox-api.authy.com')
       .post('/protected/json/users/new?api_key=fooqux', {
         'user[email]': 'foo@bar.com',
-        'user[cellphone]': '+351911234567',
+        'user[cellphone]': '911234567',
         'user[country_code]': '351'
       })
       .reply(200, {
@@ -878,7 +894,7 @@ describe('requestCall()', function() {
         }
       });
 
-    var response = yield client.registerUser('foo@bar.com', '+351911234567', '351');
+    var response = yield client.registerUser('foo@bar.com', '911234567', '351');
     var authyId = response.user.id;
 
     nock('http://sandbox-api.authy.com')
@@ -902,7 +918,7 @@ describe('requestCall()', function() {
     nock('http://sandbox-api.authy.com')
       .post('/protected/json/users/new?api_key=fooqux', {
         'user[email]': 'foo@bar.com',
-        'user[cellphone]': '+351911234567',
+        'user[cellphone]': '911234567',
         'user[country_code]': '351'
       })
       .reply(200, {
@@ -911,7 +927,7 @@ describe('requestCall()', function() {
         }
       });
 
-    var response = yield client.registerUser('foo@bar.com', '+351911234567', '351');
+    var response = yield client.registerUser('foo@bar.com', '911234567', '351');
     var authyId = response.user.id;
 
     nock('http://sandbox-api.authy.com')
@@ -934,7 +950,7 @@ describe('requestCall()', function() {
     nock('http://sandbox-api.authy.com')
       .post('/protected/json/users/new?api_key=fooqux', {
         'user[email]': 'foo@bar.com',
-        'user[cellphone]': '+351911234567',
+        'user[cellphone]': '911234567',
         'user[country_code]': '351'
       })
       .reply(200, {
@@ -943,7 +959,7 @@ describe('requestCall()', function() {
         }
       });
 
-    var response = yield client.registerUser('foo@bar.com', '+351911234567', '351');
+    var response = yield client.registerUser('foo@bar.com', '911234567', '351');
     var authyId = response.user.id;
 
     nock('http://sandbox-api.authy.com')
@@ -994,7 +1010,7 @@ describe('deleteUser()', function() {
     nock('http://sandbox-api.authy.com')
       .post('/protected/json/users/new?api_key=fooqux', {
         'user[email]': 'foo@bar.com',
-        'user[cellphone]': '+351911234567',
+        'user[cellphone]': '911234567',
         'user[country_code]': '351'
       })
       .reply(200, {
@@ -1003,7 +1019,7 @@ describe('deleteUser()', function() {
         }
       });
 
-    var response = yield client.registerUser('foo@bar.com', '+351911234567', '351');
+    var response = yield client.registerUser('foo@bar.com', '911234567', '351');
     var authyId = response.user.id;
 
     nock('http://sandbox-api.authy.com')
@@ -1048,7 +1064,7 @@ describe('getUserStatus()', function() {
     nock('http://sandbox-api.authy.com')
       .post('/protected/json/users/new?api_key=fooqux', {
         'user[email]': 'foo@bar.com',
-        'user[cellphone]': '+351911234567',
+        'user[cellphone]': '911234567',
         'user[country_code]': '351'
       })
       .reply(200, {
@@ -1057,7 +1073,7 @@ describe('getUserStatus()', function() {
         }
       });
 
-    var response = yield client.registerUser('foo@bar.com', '+351911234567', '351');
+    var response = yield client.registerUser('foo@bar.com', '911234567', '351');
     var authyId = response.user.id;
 
     nock('http://sandbox-api.authy.com')
@@ -1180,7 +1196,7 @@ describe('registerActivity()', function() {
     nock('http://sandbox-api.authy.com')
       .post('/protected/json/users/new?api_key=fooqux', {
         'user[email]': 'foo@bar.com',
-        'user[cellphone]': '+351911234567',
+        'user[cellphone]': '911234567',
         'user[country_code]': '351'
       })
       .reply(200, {
@@ -1189,7 +1205,7 @@ describe('registerActivity()', function() {
         }
       });
 
-    var response = yield client.registerUser('foo@bar.com', '+351911234567', '351');
+    var response = yield client.registerUser('foo@bar.com', '911234567', '351');
     var authyId = response.user.id;
 
     nock('http://sandbox-api.authy.com')

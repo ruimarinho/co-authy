@@ -1,7 +1,10 @@
 {
   "name": "co-authy",
   "version": "0.0.2",
-  "repository": "seegno/co-authy",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/seegno/co-authy"
+  },
   "description": "An Authy client based on generators",
   "keywords": [
     "auth",
@@ -19,8 +22,10 @@
   },
   "license": "MIT",
   "dependencies": {
+    "closure": "^1.0.3",
     "co-request": "^0.2.0",
     "debug": "^1.0.2",
+    "libphonenumber": "git://github.com/thallium205/libphonenumber#19f8dc8fc7",
     "lodash": "^2.4.1",
     "sf": "^0.1.7",
     "validator.js": "^0.6.1"
@@ -32,13 +37,9 @@
     "sinon": "^1.10.2",
     "should": "^4.0.4"
   },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/seegno/co-authy"
-  },
   "author": {
-  	"name": "Rui Marinho",
-  	"email": "rui.marinho@seegno.com",
-  	"url": "http://seegno.com"
+    "name": "Rui Marinho",
+    "email": "rui.marinho@seegno.com",
+    "url": "http://seegno.com"
   }
 }

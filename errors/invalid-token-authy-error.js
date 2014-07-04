@@ -3,7 +3,7 @@
  * Module dependencies.
  */
 
-var HttpAuthyError = require('./http-authy-error');
+var InvalidRequestAuthyError = require('./invalid-request-authy-error');
 var util = require('util');
 
 /**
@@ -11,7 +11,7 @@ var util = require('util');
  */
 
 function InvalidTokenAuthyError(body) {
-  HttpAuthyError.call(this, 'Invalid token', body);
+  InvalidRequestAuthyError.call(this, body);
   Error.captureStackTrace(this, this.constructor);
 }
 
@@ -19,7 +19,7 @@ function InvalidTokenAuthyError(body) {
  * Inherit prototype
  */
 
-util.inherits(InvalidTokenAuthyError, HttpAuthyError);
+util.inherits(InvalidTokenAuthyError, InvalidRequestAuthyError);
 
 /**
  * Export constructor

@@ -240,7 +240,7 @@ describe('registerUser()', function() {
       } catch (e) {
         e.should.be.instanceOf(ValidationFailedAuthyError);
         e.errors.cellphone.should.have.length(1);
-        e.errors.cellphone[0].show().assert.should.equal('PhoneNumber');
+        e.errors.cellphone[0].show().assert.should.equal('PossiblePhoneNumber');
       }
     });
 

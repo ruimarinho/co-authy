@@ -17,52 +17,54 @@ $ npm install co-authy
 
 ## API
 
-*Note*: arguments are in underscore exclusively for consistency with the Authy API (e.g. `country_code`).
-
-### AuthyClient(api_key, api_url)
+### AuthyClient(apiKey, apiUrl)
 
 Initialize a new Authy Client.
 
- * `api_key` Required.
- * `api_url` Defaults to production endpoint (`https://api.authy.com`).
+ * `apiKey` Required.
+ * `apiUrl` Defaults to production endpoint (`https://api.authy.com`).
 
-### registerUser(email, cellphone, country_code)
+### registerUser(email, cellphone, countryCode)
 
 Enable two-factor authentication on a user. You should store the returned `authy_id` in your database for subsequent calls.
 
-The `country_code`can be one of the following:
+Cellphone numbers are validated against a lenient validator to make sure only possible number are sent to the Authy API.
+
+The `countryCode`can be one of the following:
 
 * A valid calling code (e.g. 351);
 * An ISO 3166-1 alpha-2 code (e.g. PT);
 * An ISO 3166-1 alpha-3 code (e.g. PTR);
 
-The library automatically converts conforming country codes to the corresponding calling code. For instance, if the `country_code` passed is `PT`, then the calling code will be set to `351` without requiring extra work from the developer. Defaults to US (`1`) if omitted.
+The library automatically converts conforming country codes to the corresponding calling code. For instance, if the `countryCode` passed is `PT`, then the calling code will be set to `351` without requiring extra work from the developer. Defaults to US (`1`) if omitted.
 
 The list of countries is sourced from the awesome [countries project](https://github.com/mledoze/countries) by [@mdledoze](https://github.com/mledoze) with added support for special International Networks codes +882 and +883.
 
-### verifyToken(authy_id, token, options)
+### verifyToken(authyId, token, options)
 
 Verify a token entered by the user. Enable the `force` parameter to verify the token regardless of the user login status.
 
-### requestSms(authy_id, options)
+The token format is verified through an HOTP token validator.
+
+### requestSms(authyId, options)
 
 Request an SMS with a token for users that don't own a smartphone. If the Authy app is in use by the user, this request is ignored. Pass `force` to send an SMS regardless of this. You can also use the `shortcode` option to send the SMS using short code (available in US and Canada).
 
 Available options: ['force', 'shortcode']
 
-### requestCall(authy_id, options)
+### requestCall(authyId, options)
 
 Request a call with a token for users that don't own a smartphone or are having trouble with SMS. If the Authy app is in use by the user, this request is ignored. Pass `force` to call the user regardless of this.
 
-### deleteUser(authy_id)
+### deleteUser(authyId)
 
 Delete an user from the application.
 
-### getUserStatus(authy_id)
+### getUserStatus(authyId)
 
 Retrieve an user status.
 
-### registerActivity(authy_id, type, ip, data)
+### registerActivity(authyId, type, ip, data)
 
 Register an user activity.
 
@@ -105,7 +107,7 @@ All public method are unit tested using `nock` for mocked responses.
 $ npm test
 ```
 
-If you wish to run the tests by hitting the actual URLs, you may disable `nock` entirely and pass your own API secret key via the `AUTHY_KEY` environment variable.
+If you wish to run the tests by hitting the actual URLs, you may disable `nock` entirely and pass your own API secret key via the `AUTHY_KEY` environment variable. The sandbox API is often reset which means tests may fail when running against the actual sandbox API endpoints.
 
 ```
 $ NOCK_OFF=true AUTHY_KEY=<secret key> npm test

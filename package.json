@@ -18,7 +18,7 @@
     "2fa"
   ],
   "scripts": {
-    "test": "NODE_ENV=test ./node_modules/.bin/mocha --harmony-generators"
+    "test": "NODE_ENV=test ./node_modules/.bin/mocha --harmony-generators test/*_test.js test/**/*_test.js"
   },
   "license": "MIT",
   "dependencies": {

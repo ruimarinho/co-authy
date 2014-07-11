@@ -44,7 +44,7 @@ The list of countries is sourced from the awesome [countries project](https://gi
 
 Verify a token entered by the user. Enable the `force` parameter to verify the token regardless of the user login status.
 
-The token format is verified through an HOTP token validator.
+The token format is verified through an TOTP token validator.
 
 ### requestSms(authyId, options)
 

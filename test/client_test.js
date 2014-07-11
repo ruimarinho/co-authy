@@ -477,7 +477,7 @@ describe('verifyToken()', function() {
         e.should.be.instanceOf(ValidationFailedAuthyError);
         e.errors.token.should.have.length(2);
         e.errors.token[0].show().assert.should.equal('Required');
-        e.errors.token[1].show().assert.should.equal('HotpToken');
+        e.errors.token[1].show().assert.should.equal('TotpToken');
       }
     });
 

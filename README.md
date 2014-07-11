@@ -4,8 +4,8 @@ An Authy client for node.js using generators via [co](https://github.com/visionm
 
 ## Status
 
-[![Build Status](https://travis-ci.org/seegno/co-authy.svg)](https://travis-ci.org/seegno/co-authy) [![NPM version](https://badge.fury.io/js/co-authy.svg)](http://badge.fury.io/js/co-authy)
-
+[![NPM version][npm-image]][npm-url]
+[![build status][travis-image]][travis-url]
 
 ## Installation
 
@@ -48,7 +48,7 @@ The token format is verified through an TOTP token validator.
 
 ### requestSms(authyId, options)
 
-Request an SMS with a token for users that don't own a smartphone. If the Authy app is in use by the user, this request is ignored. Pass `force` to send an SMS regardless of this. You can also use the `shortcode` option to send the SMS using short code (available in US and Canada).
+Request an SMS with a token for users that don't own a smartphone. If the Authy app is in use by the user, this request is ignored and a push notification is sent instead. Pass `force` to send an SMS regardless of this. You can also use the `shortcode` option to send the SMS using short code (available in US and Canada).
 
 Available options: ['force', 'shortcode']
 
@@ -120,3 +120,8 @@ $ NOCK_OFF=true AUTHY_KEY=<secret key> npm test
 ## License
 
 MIT
+
+[npm-image]: https://img.shields.io/npm/v/co-authy.svg?style=flat
+[npm-url]: https://npmjs.org/package/co-authy
+[travis-image]: https://img.shields.io/travis/seegno/co-authy.svg?style=flat
+[travis-url]: https://travis-ci.org/seegno/co-authy

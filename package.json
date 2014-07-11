@@ -28,7 +28,8 @@
     "libphonenumber": "git://github.com/thallium205/libphonenumber#19f8dc8fc7",
     "lodash": "^2.4.1",
     "sf": "^0.1.7",
-    "validator.js": "^0.6.1"
+    "validator.js": "^0.6.1",
+    "world-countries": "^1.4.1"
   },
   "devDependencies": {
     "co-mocha": "0.0.4",

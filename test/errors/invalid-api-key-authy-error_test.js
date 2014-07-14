@@ -5,12 +5,12 @@
 
 require('should');
 
-var InvalidTokenAuthyError = require('../../errors/invalid-token-authy-error');
+var InvalidApiKeyAuthyError = require('../../errors/invalid-token-authy-error');
 var UnauthorizedAccessAuthyError = require('../../errors/unauthorized-access-authy-error');
 
-describe('InvalidTokenAuthyError', function() {
+describe('InvalidApiKeyAuthyError', function() {
   it('should inherit from `UnauthorizedAccessAuthyError`', function() {
-    var error = new InvalidTokenAuthyError();
+    var error = new InvalidApiKeyAuthyError();
 
     error.should.be.instanceOf(UnauthorizedAccessAuthyError);
   });

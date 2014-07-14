@@ -18,13 +18,6 @@ describe('TOTP Token Validator', function() {
     Assert.prototype.TotpToken = assert;
   });
 
-  it('should have default boundaries between 6 and 8 digits', function() {
-    var assert = new Assert().TotpToken();
-
-    assert.boundaries.min.should.equal(6);
-    assert.boundaries.max.should.equal(8);
-  });
-
   it('throw an error if the input value is an `array`', function() {
     try {
       new Assert().TotpToken().validate([]);
@@ -94,12 +87,19 @@ describe('TOTP Token Validator', function() {
 
     calls.should.equal(input.length);
   });
-});
 
-it('should accept tokens between 6 and 8 digits', function() {
-  var input = ['123456', '0601338', '5166240', '12345678'];
+  it('should have default boundaries between 6 and 8 digits', function() {
+    var assert = new Assert().TotpToken();
 
-  input.forEach(function(value) {
-    new Assert().TotpToken().validate(value);
+    assert.boundaries.min.should.equal(6);
+    assert.boundaries.max.should.equal(8);
+  });
+
+  it('should accept tokens between 6 and 8 digits', function() {
+    var input = ['123456', '0601338', '5166240', '12345678'];
+
+    input.forEach(function(value) {
+      new Assert().TotpToken().validate(value);
+    });
   });
 });

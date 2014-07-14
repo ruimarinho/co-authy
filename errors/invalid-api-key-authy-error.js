@@ -7,10 +7,11 @@ var UnauthorizedAccessAuthyError = require('./unauthorized-access-authy-error');
 var util = require('util');
 
 /**
- * Invalid token error
+ * Invalid API key error
+ *
  */
 
-function InvalidTokenAuthyError(body) {
+function InvalidApiKeyAuthyError(body) {
   UnauthorizedAccessAuthyError.call(this, body);
   Error.captureStackTrace(this, this.constructor);
 }
@@ -19,10 +20,10 @@ function InvalidTokenAuthyError(body) {
  * Inherit prototype
  */
 
-util.inherits(InvalidTokenAuthyError, UnauthorizedAccessAuthyError);
+util.inherits(InvalidApiKeyAuthyError, UnauthorizedAccessAuthyError);
 
 /**
  * Export constructor
  */
 
-module.exports = InvalidTokenAuthyError;
+module.exports = InvalidApiKeyAuthyError;

@@ -13,195 +13,115 @@ var InvalidTokenAuthyError = require('../errors/invalid-token-authy-error');
 var InvalidTokenUsedRecentlyAuthyError = require('../errors/invalid-token-used-recently-authy-error');
 var ValidationFailedAuthyError = require('../errors/validation-failed-authy-error');
 var Validator = require('validator.js').Validator;
-var client = new AuthyClient(process.env.AUTHY_KEY || 'fooqux', 'http://sandbox-api.authy.com');
-var nock = require('nock');
+var mocks = require('./mocks');
 var should = require('should');
 var sinon = require('sinon');
 
-describe('Client', function() {
-  describe('constructor', function() {
-    it('should throw an error if `apiKey` is missing', function() {
-      try {
-        new AuthyClient(undefined, 'http://sandbox-api.authy.com');
-      } catch (e) {
-        e.should.be.instanceOf(ValidationFailedAuthyError);
-        e.errors.api_key.show().assert.should.equal('HaveProperty');
-      }
-    });
+describe.only('Client', function() {
+  var client;
 
-    it('should throw an error if `apiUrl` is missing', function() {
-      try {
-        new AuthyClient('foo', undefined);
-      } catch (e) {
-        e.should.be.instanceOf(ValidationFailedAuthyError);
-        e.errors.api_url.show().assert.should.equal('HaveProperty');
-      }
-    });
-
-    it('should allow initialization without the `new` keyword', function() {
-      /*jshint newcap:false*/
-      var validClient = AuthyClient('foo', 'http://sandbox-api.authy.com');
-
-      validClient.apiKey.should.equal('foo');
-      validClient.apiUrl.should.equal('http://sandbox-api.authy.com');
-    });
+  beforeEach(function(){
+    /* jshint newcap:false*/
+    client = AuthyClient(process.env.AUTHY_KEY || 'fooqux', { host: 'http://sandbox-api.authy.com' });
   });
 
-  describe('configuration', function() {
-    it('should throw an error if the api `key` is invalid', function *() {
-      nock('http://sandbox-api.authy.com')
-        .post('/protected/json/users/new?api_key=foo', {
-          'user[email]': 'foo@bar.com',
-          'user[cellphone]': '408-550-3542',
-          'user[country_code]': '1'
-        })
-        .reply(401, {
-          message: 'Invalid API key.',
-          success: false,
-          errors: {
-            message: 'Invalid API key.'
-          }
-        });
+  it('should throw an error if `apiKey` is missing', function() {
+    try {
+      new AuthyClient(undefined, { host: 'http://sandbox-api.authy.com' });
+    } catch (e) {
+      e.should.be.instanceOf(ValidationFailedAuthyError);
+      e.errors.api_key.show().assert.should.equal('HaveProperty');
+    }
+  });
 
-      var clientWithInvalidKey = new AuthyClient('foo', 'http://sandbox-api.authy.com');
+  it('should not require the `new` keyword', function() {
+    client.should.be.instanceOf(AuthyClient);
+  });
+
+  it('should set default options', function() {
+    var c = new AuthyClient('foo');
+    c.apiKey.should.equal('foo');
+    c.apiUrl.should.equal('https://api.authy.com');
+  });
+
+  describe('#registerUser', function() {
+    it('should throw an error if the api `key` is invalid', function *() {
+      mocks.registerUser.failWithInvalidApiKey();
+
+      var c = new AuthyClient('foo', { host: 'http://sandbox-api.authy.com' });
 
       try {
-        yield clientWithInvalidKey.registerUser('foo@bar.com', '408-550-3542');
-
-        should.fail();
+        yield c.registerUser('foo@bar.com', '408-550-3542');
       } catch (e) {
         e.should.be.instanceOf(InvalidApiKeyAuthyError);
         e.message.should.equal('Invalid API key.');
-        e.body.should.eql({
-          message: 'Invalid API key.',
-          success: false,
-          errors: {
-            message: 'Invalid API key.'
-          }
-        });
       }
     });
-  });
 
-  describe('registerUser()', function() {
     it('should support `country_code` in the ISO 3166-1 alpha-2 format', function *() {
-      nock('http://sandbox-api.authy.com')
-        .post('/protected/json/users/new?api_key=fooqux', {
+      mocks.registerUser.succeed({
+        matchBody: {
           'user[email]': 'foo@bar.com',
           'user[cellphone]': '911234567',
           'user[country_code]': '351'
-        })
-        .reply(200, {
-          user: {
-            id: 1635
-          }
-        });
+        }
+      });
 
       yield client.registerUser('foo@bar.com', '911234567', 'PT');
     });
 
     it('should support `country_code` in the ISO 3166-1 alpha-3 numeric format', function *() {
-      nock('http://sandbox-api.authy.com')
-        .post('/protected/json/users/new?api_key=fooqux', {
+      mocks.registerUser.succeed({
+        matchBody: {
           'user[email]': 'foo@bar.com',
           'user[cellphone]': '911234567',
           'user[country_code]': '351'
-        })
-        .reply(200, {
-          user: {
-            id: 1635
-          }
-        });
+        }
+      });
 
       yield client.registerUser('foo@bar.com', '911234567', 'PRT');
     });
 
     it('should support the special International Networks `country_code` (+882)', function *() {
-      nock('http://sandbox-api.authy.com')
-        .post('/protected/json/users/new?api_key=fooqux', {
-          'user[email]': 'foo@bar.com',
-          'user[cellphone]': '13300655',
-          'user[country_code]': '882'
-        })
-        .reply(200, {
-          user: {
-            id: 1635
-          }
-        });
+      mocks.registerUser.succeed();
 
-        yield client.registerUser('foo@bar.com', '13300655', '882');
+      yield client.registerUser('foo@bar.com', '13300655', '882');
     });
 
     it('should support the special International Networks `country_code` (+883)', function *() {
-      nock('http://sandbox-api.authy.com')
-        .post('/protected/json/users/new?api_key=fooqux', {
-          'user[email]': 'foo@bar.com',
-          'user[cellphone]': '510012345',
-          'user[country_code]': '883'
-        })
-        .reply(200, {
-          user: {
-            id: 1635
-          }
-        });
+      mocks.registerUser.succeed();
 
       yield client.registerUser('foo@bar.com', '510012345', '883');
     });
 
     it('should default the `country_code` to USA (+1) if it is missing', function *() {
-      nock('http://sandbox-api.authy.com')
-        .post('/protected/json/users/new?api_key=fooqux', {
+      mocks.registerUser.succeed({
+        matchBody: {
           'user[email]': 'foo@bar.com',
           'user[cellphone]': '5627562233',
           'user[country_code]': '1'
-        })
-        .reply(200, {
-          user: {
-            id: 1635
-          }
-        });
+        }
+      });
 
       yield client.registerUser('foo@bar.com', '5627562233');
     });
 
-    it('should throw an error if the authy `id` is not returned', function *() {
-      nock('http://sandbox-api.authy.com')
-        .post('/protected/json/users/new?api_key=fooqux', {
-          'user[email]': 'foo@bar.com',
-          'user[cellphone]': '911234567',
-          'user[country_code]': '351'
-        })
-        .reply(200, {
-          user: {
-            authy_id: 1
-          }
-        });
+    it('should throw an error if the authy user `id` is not returned', function *() {
+      mocks.registerUser.succeedWithMissingUserId();
 
       try {
         yield client.registerUser('foo@bar.com', '911234567', '351');
       } catch (e) {
         e.should.be.instanceOf(AuthyError);
         e.message.should.equal('`user.id` is missing');
-        e.body.should.eql({ user: { authy_id: 1 }});
+        e.body.should.not.be.empty;
       }
     });
 
-    it('should return the authy `id`', function *() {
-      nock('http://sandbox-api.authy.com')
-        .post('/protected/json/users/new?api_key=fooqux', {
-          'user[email]': 'foo@bar.com',
-          'user[cellphone]': '911234567',
-          'user[country_code]': '351'
-        })
-        .reply(200, {
-          user: {
-            id: 1635
-          }
-        });
+    it('should return the authy user `id`', function *() {
+      mocks.registerUser.succeed();
 
-      var response = yield client.registerUser('foo@bar.com', '911234567', '351');
-
-      response.user.id.should.equal(1635);
+      (yield client.registerUser('foo@bar.com', '911234567', '351')).user.id.should.equal(1635);
     });
 
     describe('client validation', function() {
@@ -279,21 +199,7 @@ describe('Client', function() {
       it('should throw an error if `email` is missing', function *() {
         sinon.stub(Validator.prototype, 'validate', function() { return true; });
 
-        nock('http://sandbox-api.authy.com')
-          .post('/protected/json/users/new?api_key=fooqux', {
-            'user[email]': '',
-            'user[cellphone]': '123456789',
-            'user[country_code]': '351'
-          })
-          .reply(400, {
-            message: 'User was not valid.',
-            email: 'is invalid and can\'t be blank',
-            success: false,
-            errors: {
-              message: 'User was not valid.',
-              email: 'is invalid and can\'t be blank'
-            }
-          });
+        mocks.registerUser.failWithInvalidRequest({ email: 'invalid-blank' });
 
         try {
           yield client.registerUser('', '123456789', '351');
@@ -311,21 +217,7 @@ describe('Client', function() {
       it('should throw an error if `email` is invalid', function *() {
         sinon.stub(Validator.prototype, 'validate', function() { return true; });
 
-        nock('http://sandbox-api.authy.com')
-          .post('/protected/json/users/new?api_key=fooqux', {
-            'user[email]': 'foo',
-            'user[cellphone]': '123456789',
-            'user[country_code]': '351'
-          })
-          .reply(400, {
-            message: 'User was not valid.',
-            email: 'is invalid',
-            success: false,
-            errors: {
-              message: 'User was not valid.',
-              email: 'is invalid'
-            }
-          });
+        mocks.registerUser.failWithInvalidRequest({ email: 'invalid' });
 
         try {
           yield client.registerUser('foo', '123456789', '351');
@@ -343,21 +235,7 @@ describe('Client', function() {
       it('should throw an error if `cellphone` is missing', function *() {
         sinon.stub(Validator.prototype, 'validate', function() { return true; });
 
-        nock('http://sandbox-api.authy.com')
-          .post('/protected/json/users/new?api_key=fooqux', {
-            'user[email]': 'foo@bar.com',
-            'user[cellphone]': '',
-            'user[country_code]': '351'
-          })
-          .reply(400, {
-            message: 'User was not valid.',
-            cellphone: 'is invalid',
-            success: false,
-            errors: {
-              message: 'User was not valid.',
-              cellphone: 'is invalid'
-            }
-          });
+        mocks.registerUser.failWithInvalidRequest({ cellphone: 'invalid' });
 
         try {
           yield client.registerUser('foo@bar.com', '', '351');
@@ -375,21 +253,7 @@ describe('Client', function() {
       it('should throw an error if `cellphone` is invalid', function *() {
         sinon.stub(Validator.prototype, 'validate', function() { return true; });
 
-        nock('http://sandbox-api.authy.com')
-          .post('/protected/json/users/new?api_key=fooqux', {
-            'user[email]': 'foo@bar.com',
-            'user[cellphone]': 'FOO',
-            'user[country_code]': '351'
-         })
-         .reply(400, {
-            message: 'User was not valid.',
-            cellphone: 'is invalid',
-            success: false,
-            errors: {
-              message: 'User was not valid.',
-              cellphone: 'is invalid'
-            }
-        });
+        mocks.registerUser.failWithInvalidRequest({ cellphone: 'invalid' });
 
         try {
           yield client.registerUser('foo@bar.com', 'FOO', '351');
@@ -407,21 +271,7 @@ describe('Client', function() {
       it('should throw an error if `country_code` is not supported', function *() {
         sinon.stub(Validator.prototype, 'validate', function() { return true; });
 
-        nock('http://sandbox-api.authy.com')
-          .post('/protected/json/users/new?api_key=fooqux', {
-            'user[email]': 'foo@bar.com',
-            'user[cellphone]': '123456789',
-            'user[country_code]': '12345'
-          })
-          .reply(400, {
-            message: 'User was not valid.',
-            country_code: 'is not supported',
-            success: false,
-            errors: {
-              message: 'User was not valid.',
-              country_code: 'is not supported'
-            }
-          });
+        mocks.registerUser.failWithInvalidRequest({ country_code: 'unsupported' });
 
         try {
           yield client.registerUser('foo@bar.com', '123456789', '12345');
@@ -438,7 +288,7 @@ describe('Client', function() {
     });
   });
 
-  describe('verifyToken()', function() {
+  describe('#verifyToken', function() {
     describe('client validation', function() {
       it('should throw an error if `authy_id` is missing', function *() {
         try {
@@ -505,145 +355,50 @@ describe('Client', function() {
       it('should throw an error if the `token` is invalid', function *() {
         sinon.stub(Validator.prototype, 'validate', function() { return true; });
 
-        nock('http://sandbox-api.authy.com')
-          .post('/protected/json/users/new?api_key=fooqux', {
-            'user[email]': 'foo@bar.com',
-            'user[cellphone]': '911234567',
-            'user[country_code]': '351'
-          })
-          .reply(200, {
-            user: {
-              id: 1
-            }
-          });
-
-        var response = yield client.registerUser('foo@bar.com', '911234567', '351');
-        var authyId = response.user.id;
-
-        nock('http://sandbox-api.authy.com')
-          .get('/protected/json/verify/foo/' + authyId + '?api_key=fooqux')
-          .reply(401, {
-            message: 'Token is invalid.',
-            token: 'is invalid',
-            success: false,
-            errors: {
-              message: 'Token is invalid.'
-            }
-          });
+        mocks.verifyToken.fail();
 
         try {
-          yield client.verifyToken(authyId, 'foo');
+          yield client.verifyToken(1635, 'foo');
 
           should.fail();
         } catch (e) {
           e.should.be.instanceOf(InvalidTokenAuthyError);
+          e.message.should.equal('Token is invalid.');
+          e.body.should.not.be.empty;
         }
 
         Validator.prototype.validate.restore();
       });
 
       it('should throw an error if the `token` has been used recently', function *() {
-        nock('http://sandbox-api.authy.com')
-          .post('/protected/json/users/new?api_key=fooqux', {
-            'user[email]': 'foo@bar.com',
-            'user[cellphone]': '911234567',
-            'user[country_code]': '351'
-          })
-          .reply(200, {
-            user: {
-              id: 1
-            }
-          });
-
-        var response = yield client.registerUser('foo@bar.com', '911234567', '351');
-        var authyId = response.user.id;
-
-        nock('http://sandbox-api.authy.com')
-          .get('/protected/json/verify/0601338/' + authyId + '?api_key=fooqux')
-          .reply(401, {
-            message: 'Token is invalid. Token was used recently.',
-            success: false,
-            errors: {
-              message: 'Token is invalid. Token was used recently.'
-            }
-          });
+        mocks.verifyToken.failWithRecentlyUsed();
 
         try {
-          yield client.verifyToken(authyId, '0601338');
+          yield client.verifyToken(1635, '0601338');
 
           should.fail();
         } catch (e) {
           e.should.be.instanceOf(InvalidTokenUsedRecentlyAuthyError);
           e.message.should.equal('Token is invalid. Token was used recently.');
-          e.body.should.eql({
-            message: 'Token is invalid. Token was used recently.',
-            success: false,
-            errors: {
-              message: 'Token is invalid. Token was used recently.'
-            }
-          });
+          e.body.should.not.be.empty;
         }
       });
     });
 
     it('should accept a `force` parameter', function *() {
-      nock('http://sandbox-api.authy.com')
-        .post('/protected/json/users/new?api_key=fooqux', {
-          'user[email]': 'foo@bar.com',
-          'user[cellphone]': '911234567',
-          'user[country_code]': '351'
-        })
-        .reply(200, {
-          user: {
-            id: 1635
-          }
-        });
+      mocks.verifyToken.succeedWithForce();
 
-      var response = yield client.registerUser('foo@bar.com', '911234567', '351');
-      var authyId = response.user.id;
-      var validToken = '1234567';
-
-      nock('http://sandbox-api.authy.com')
-        .get('/protected/json/verify/' + validToken + '/' + authyId + '?api_key=fooqux&force=true')
-        .reply(200, {
-          success: true,
-          token: 'is valid',
-          message: 'Token is valid.'
-        });
-
-      yield client.verifyToken(authyId, validToken, { force: true });
+      yield client.verifyToken(1635, '1234567', { force: true });
     });
 
     it('should not throw an error if the `token` is valid', function *() {
-      nock('http://sandbox-api.authy.com')
-        .post('/protected/json/users/new?api_key=fooqux', {
-          'user[email]': 'foo@bar.com',
-          'user[cellphone]': '911234567',
-          'user[country_code]': '351'
-        })
-        .reply(200, {
-          user: {
-            id: 1635
-          }
-        });
+      mocks.verifyToken.succeed();
 
-      var response = yield client.registerUser('foo@bar.com', '911234567', '351');
-      var authyId = response.user.id;
-      var validToken = '1234567';
-
-      nock('http://sandbox-api.authy.com')
-        .get('/protected/json/verify/' + validToken + '/' + authyId + '?api_key=fooqux')
-        .reply(200, {
-          success: true,
-          token: 'is valid',
-          message: 'Token is valid.'
-        });
-
-      yield client.verifyToken(authyId, validToken);
+      yield client.verifyToken(1635, '1234567');
     });
   });
 
-  describe('requestSms()', function() {
+  describe('#requestSms', function() {
     describe('client validation', function() {
       it('should throw an error if `authy_id` is missing', function *() {
         try {
@@ -698,30 +453,14 @@ describe('Client', function() {
       it('should throw an error if the `authy_id` is invalid ', function *() {
         sinon.stub(Validator.prototype, 'validate', function() { return true; });
 
-        var invalidAuthyId = 'FOO';
-
-        nock('http://sandbox-api.authy.com')
-          .get('/protected/json/sms/' + invalidAuthyId + '?api_key=fooqux&force=true')
-          .reply(404, {
-            message: 'User not found.',
-            success: false,
-            errors: {
-              message: 'User not found.'
-            }
-          });
+        mocks.requestSms.failWithInvalidAuthyId();
 
         try {
-          yield client.requestSms(invalidAuthyId, { force: true });
+          yield client.requestSms(1600);
         } catch (e) {
           e.should.be.instanceOf(HttpAuthyError);
           e.message.should.equal('User not found.');
-          e.body.should.eql({
-            message: 'User not found.',
-            success: false,
-            errors: {
-              message: 'User not found.'
-            }
-          });
+          e.body.should.not.be.empty;
         }
 
         Validator.prototype.validate.restore();
@@ -729,136 +468,43 @@ describe('Client', function() {
     });
 
     it('should throw an error if a `cellphone` is not returned', function *() {
-      nock('http://sandbox-api.authy.com')
-        .post('/protected/json/users/new?api_key=fooqux', {
-          'user[email]': 'foo@bar.com',
-          'user[cellphone]': '911234567',
-          'user[country_code]': '351'
-        })
-        .reply(200, {
-          user: {
-            id: 1635
-          }
-        });
-
-      var response = yield client.registerUser('foo@bar.com', '911234567', '351');
-      var authyId = response.user.id;
-
-      nock('http://sandbox-api.authy.com')
-        .get('/protected/json/sms/' + authyId + '?api_key=fooqux')
-        .reply(200, {
-          ignored: 'SMS is not needed for smartphones. Pass force=true if you want to actually send it anyway.',
-        });
+      mocks.requestSms.succeedWithMissingCellphone();
 
       try {
-        yield client.requestSms(authyId);
+        yield client.requestSms(1635);
       } catch (e) {
         e.should.be.instanceOf(AuthyError);
         e.message.should.equal('`cellphone` is missing');
-        e.body.should.eql({
-          ignored: 'SMS is not needed for smartphones. Pass force=true if you want to actually send it anyway.',
-        });
+        e.body.should.not.be.empty;
       }
     });
 
+    it('should not throw an error if SMS request has been ignored', function *() {
+      mocks.requestSms.succeedWithIgnoredSms();
+
+      yield client.requestSms(1635);
+    });
+
     it('should accept a `force` parameter', function *() {
-      nock('http://sandbox-api.authy.com')
-        .post('/protected/json/users/new?api_key=fooqux', {
-          'user[email]': 'foo@bar.com',
-          'user[cellphone]': '911234567',
-          'user[country_code]': '351'
-        })
-        .reply(200, {
-          user: {
-            id: 1635
-          }
-        });
+      mocks.requestSms.succeedWithForce();
 
-      var response = yield client.registerUser('foo@bar.com', '911234567', '351');
-      var authyId = response.user.id;
-
-      nock('http://sandbox-api.authy.com')
-        .get('/protected/json/sms/' + authyId + '?api_key=fooqux&force=true')
-        .reply(200, {
-          success: true,
-          cellphone: '+351-XXX-XXX-XX67',
-          message: 'SMS token was sent'
-        });
-
-      response = yield client.requestSms(authyId, { force: true });
-      response.should.eql({
-        success: true,
-        cellphone: '+351-XXX-XXX-XX67',
-        message: 'SMS token was sent'
-      });
+      yield client.requestSms(1635, { force: true });
     });
 
     it('should accept a `shortcode` parameter', function *() {
-      nock('http://sandbox-api.authy.com')
-        .post('/protected/json/users/new?api_key=fooqux', {
-          'user[email]': 'foo@bar.com',
-          'user[cellphone]': '911234567',
-          'user[country_code]': '351'
-        })
-        .reply(200, {
-          user: {
-            id: 1635
-          }
-        });
+      mocks.requestSms.succeedWithShortcode();
 
-      var response = yield client.registerUser('foo@bar.com', '911234567', '351');
-      var authyId = response.user.id;
-
-      nock('http://sandbox-api.authy.com')
-        .get('/protected/json/sms/' + authyId + '?api_key=fooqux&shortcode=true')
-        .reply(200, {
-          success: true,
-          cellphone: '+351-XXX-XXX-XX67',
-          message: 'SMS token was sent'
-        });
-
-      response = yield client.requestSms(authyId, { shortcode: true });
-      response.should.eql({
-        success: true,
-        cellphone: '+351-XXX-XXX-XX67',
-        message: 'SMS token was sent'
-      });
+      yield client.requestSms(1635, { shortcode: true });
     });
 
     it('should send an SMS token', function *() {
-      nock('http://sandbox-api.authy.com')
-        .post('/protected/json/users/new?api_key=fooqux', {
-          'user[email]': 'foo@bar.com',
-          'user[cellphone]': '911234567',
-          'user[country_code]': '351'
-        })
-        .reply(200, {
-          user: {
-            id: 1635
-          }
-        });
+      mocks.requestSms.succeed();
 
-      var response = yield client.registerUser('foo@bar.com', '911234567', '351');
-      var authyId = response.user.id;
-
-      nock('http://sandbox-api.authy.com')
-        .get('/protected/json/sms/' + authyId + '?api_key=fooqux')
-        .reply(200, {
-          success: true,
-          cellphone: '+351-XXX-XXX-XX67',
-          message: 'SMS token was sent'
-        });
-
-      response = yield client.requestSms(authyId);
-      response.should.eql({
-        success: true,
-        cellphone: '+351-XXX-XXX-XX67',
-        message: 'SMS token was sent'
-      });
+      yield client.requestSms(1635);
     });
   });
 
-  describe('requestCall()', function() {
+  describe('#requestCall', function() {
     describe('client validation', function() {
       it('should throw an error if `authy_id` is missing', function *() {
         try {
@@ -899,32 +545,16 @@ describe('Client', function() {
 
     describe('remote validation', function() {
       it('should throw an error if the `authy_id` is invalid ', function *() {
-        var invalidAuthyId = 'FOO';
-
         sinon.stub(Validator.prototype, 'validate', function() { return true; });
 
-        nock('http://sandbox-api.authy.com')
-          .get('/protected/json/call/' + invalidAuthyId + '?api_key=fooqux&force=true')
-          .reply(404, {
-            message: 'User not found.',
-            success: false,
-            errors: {
-              message: 'User not found.'
-            }
-          });
+        mocks.requestCall.failWithInvalidAuthyId();
 
         try {
-          yield client.requestCall(invalidAuthyId, { force: true });
+          yield client.requestCall(1600);
         } catch (e) {
           e.should.be.instanceOf(HttpAuthyError);
           e.message.should.equal('User not found.');
-          e.body.should.eql({
-            message: 'User not found.',
-            success: false,
-            errors: {
-              message: 'User not found.'
-            }
-          });
+          e.body.should.not.be.empty;
         }
 
         Validator.prototype.validate.restore();
@@ -932,104 +562,37 @@ describe('Client', function() {
     });
 
     it('should throw an error if a `cellphone` is not returned', function *() {
-      nock('http://sandbox-api.authy.com')
-        .post('/protected/json/users/new?api_key=fooqux', {
-          'user[email]': 'foo@bar.com',
-          'user[cellphone]': '911234567',
-          'user[country_code]': '351'
-        })
-        .reply(200, {
-          user: {
-            id: 1635
-          }
-        });
-
-      var response = yield client.registerUser('foo@bar.com', '911234567', '351');
-      var authyId = response.user.id;
-
-      nock('http://sandbox-api.authy.com')
-        .get('/protected/json/call/' + authyId + '?api_key=fooqux')
-        .reply(200, {
-          ignored: 'Call ignored. User is using App Tokens and this call is not necessary. Pass force=true if you still want to call users that are using the App.',
-        });
+      mocks.requestCall.succeedWithMissingCellphone();
 
       try {
-        yield client.requestCall(authyId);
+        yield client.requestCall(1635);
       } catch (e) {
         e.should.be.instanceOf(AuthyError);
         e.message.should.equal('`cellphone` is missing');
-        e.body.should.eql({
-          ignored: 'Call ignored. User is using App Tokens and this call is not necessary. Pass force=true if you still want to call users that are using the App.',
-        });
+        e.body.should.not.be.empty;
       }
     });
 
+    it('should not throw an error if call request has been ignored', function *() {
+      mocks.requestCall.succeedWithIgnoredCall();
+
+      yield client.requestCall(1635);
+    });
+
     it('should accept a `force` parameter', function *() {
-      nock('http://sandbox-api.authy.com')
-        .post('/protected/json/users/new?api_key=fooqux', {
-          'user[email]': 'foo@bar.com',
-          'user[cellphone]': '911234567',
-          'user[country_code]': '351'
-        })
-        .reply(200, {
-          user: {
-            id: 1635
-          }
-        });
+      mocks.requestCall.succeedWithForce();
 
-      var response = yield client.registerUser('foo@bar.com', '911234567', '351');
-      var authyId = response.user.id;
-
-      nock('http://sandbox-api.authy.com')
-        .get('/protected/json/call/' + authyId + '?api_key=fooqux&force=true')
-        .reply(200, {
-          success: true,
-          cellphone: '+351-XXX-XXX-XX67',
-          message: 'Call started.'
-        });
-
-      response = yield client.requestCall(authyId, { force: true });
-      response.should.eql({
-        success: true,
-        cellphone: '+351-XXX-XXX-XX67',
-        message: 'Call started.'
-      });
+      yield client.requestCall(1635, { force: true });
     });
 
     it('should call a cellphone', function *() {
-      nock('http://sandbox-api.authy.com')
-        .post('/protected/json/users/new?api_key=fooqux', {
-          'user[email]': 'foo@bar.com',
-          'user[cellphone]': '911234567',
-          'user[country_code]': '351'
-        })
-        .reply(200, {
-          user: {
-            id: 1635
-          }
-        });
+      mocks.requestCall.succeed();
 
-      var response = yield client.registerUser('foo@bar.com', '911234567', '351');
-      var authyId = response.user.id;
-
-      nock('http://sandbox-api.authy.com')
-        .get('/protected/json/call/' + authyId + '?api_key=fooqux')
-        .reply(200, {
-          success: true,
-          cellphone: '+351-XXX-XXX-XX67',
-          message: 'Call started.'
-        });
-
-      response = yield client.requestCall(authyId);
-      response.should.eql({
-        success: true,
-        cellphone: '+351-XXX-XXX-XX67',
-        message: 'Call started.'
-      });
+      yield client.requestCall(1635);
     });
   });
 
-  describe('deleteUser()', function() {
+  describe('#deleteUser', function() {
     describe('client validation', function() {
       it('should throw an error if `authy_id` is missing', function *() {
         try {
@@ -1057,33 +620,13 @@ describe('Client', function() {
     });
 
     it('should not throw an error if the user is deleted', function *() {
-      nock('http://sandbox-api.authy.com')
-        .post('/protected/json/users/new?api_key=fooqux', {
-          'user[email]': 'foo@bar.com',
-          'user[cellphone]': '911234567',
-          'user[country_code]': '351'
-        })
-        .reply(200, {
-          user: {
-            id: 1635
-          }
-        });
+      mocks.deleteUser.succeed();
 
-      var response = yield client.registerUser('foo@bar.com', '911234567', '351');
-      var authyId = response.user.id;
-
-      nock('http://sandbox-api.authy.com')
-        .post('/protected/json/users/delete/' + authyId + '?api_key=fooqux')
-        .reply(200, {
-          success: true,
-          message: 'User was added to remove.'
-        });
-
-      yield client.deleteUser(authyId);
+      yield client.deleteUser(1635);
     });
   });
 
-  describe('getUserStatus()', function() {
+  describe('#getUserStatus', function() {
     describe('client validation', function() {
       it('should throw an error if `authy_id` is missing', function *() {
         try {
@@ -1111,54 +654,13 @@ describe('Client', function() {
     });
 
     it('should return the user status', function *() {
-      nock('http://sandbox-api.authy.com')
-        .post('/protected/json/users/new?api_key=fooqux', {
-          'user[email]': 'foo@bar.com',
-          'user[cellphone]': '911234567',
-          'user[country_code]': '351'
-        })
-        .reply(200, {
-          user: {
-            id: 1635
-          }
-        });
+      mocks.userStatus.succeed();
 
-      var response = yield client.registerUser('foo@bar.com', '911234567', '351');
-      var authyId = response.user.id;
-
-      nock('http://sandbox-api.authy.com')
-        .get('/protected/json/users/' + authyId + '/status?api_key=fooqux')
-        .reply(200, {
-          success: true,
-          message: 'User status.',
-          status: {
-            authy_id: 1635,
-            confirmed: true,
-            registered: false,
-            country_code: 351,
-            phone_number: 'XX-XXX-4567',
-            devices: []
-          }
-        });
-
-      var result = yield client.getUserStatus(authyId);
-
-      result.should.eql({
-        success: true,
-        message: 'User status.',
-          status: {
-            authy_id: 1635,
-            confirmed: true,
-            registered: false,
-            country_code: 351,
-            phone_number: 'XX-XXX-4567',
-            devices: []
-          }
-        });
+      (yield client.getUserStatus(1635)).should.have.keys('success', 'message', 'status');
     });
   });
 
-  describe('registerActivity()', function() {
+  describe('#registerActivity', function() {
     describe('client validation', function() {
       it('should throw an error if `authy_id` is missing', function *() {
         try {
@@ -1243,180 +745,31 @@ describe('Client', function() {
     });
 
     it('should register the activity', function *() {
-      nock('http://sandbox-api.authy.com')
-        .post('/protected/json/users/new?api_key=fooqux', {
-          'user[email]': 'foo@bar.com',
-          'user[cellphone]': '911234567',
-          'user[country_code]': '351'
-        })
-        .reply(200, {
-          user: {
-            id: 1635
-          }
-        });
-
-      var response = yield client.registerUser('foo@bar.com', '911234567', '351');
-      var authyId = response.user.id;
-
-      nock('http://sandbox-api.authy.com')
-        .post('/protected/json/users/' + authyId + '/register_activity?api_key=fooqux', {
+      mocks.registerActivity.succeed({
+        matchBody: {
           'ip': '86.112.56.34',
           'type': 'banned',
           'data[reason]': 'foo'
-       })
-       .reply(200, {
-          message: 'Activity was created.',
-          success: true
+        }
       });
 
-      yield client.registerActivity(authyId, 'banned', '86.112.56.34', { reason: 'foo' });
+      yield client.registerActivity(1635, 'banned', '86.112.56.34', { reason: 'foo' });
     });
   });
 
-  describe('getApplicationDetails()', function() {
+  describe('#getApplicationDetails', function() {
     it('should return the application details', function *() {
-      nock('http://sandbox-api.authy.com')
-        .get('/protected/json/app/details?api_key=fooqux')
-        .reply(200, {
-          message: 'Application information.',
-          success: true,
-          app: {
-            name: 'Sandbox App 2',
-            plan: 'starter',
-            sms_enabled: false,
-            white_label: false,
-            app_id: 3
-          }
-        });
+      mocks.applicationDetails.succeed();
 
-      var response = yield client.getApplicationDetails();
-      response.should.eql({
-        message: 'Application information.',
-        success: true,
-        app: {
-          name: 'Sandbox App 2',
-          plan: 'starter',
-          sms_enabled: false,
-          white_label: false,
-          app_id: 3
-        }
-       });
+      (yield client.getApplicationDetails()).should.have.keys('message', 'success', 'app');
     });
   });
 
-  describe('getApplicationStatistics()', function() {
+  describe('#getApplicationStatistics', function() {
     it('should return the application statistics', function *() {
-      nock('http://sandbox-api.authy.com')
-        .get('/protected/json/app/stats?api_key=fooqux')
-        .reply(200, {
-          message: 'Monthly statistics.',
-          count: 12,
-          total_users: 115,
-          app_id: 3,
-          success: true,
-          stats: [
-            {
-              sms_count: 0,
-              calls_count: 0,
-              users_count: 1,
-              auths_count: 0,
-              month: 'August',
-              api_calls_count: 13,
-              year: 2013
-            }, {
-              sms_count: 0,
-              calls_count: 0,
-              users_count: 1,
-              auths_count: 0,
-              month: 'September',
-              api_calls_count: 30,
-              year: 2013
-            }, {
-              sms_count: 0,
-              calls_count: 0,
-              users_count: 2,
-              auths_count: 0,
-              month: 'October',
-              api_calls_count: 20,
-              year: 2013
-            }, {
-              sms_count: 0,
-              calls_count: 0,
-              users_count: 3,
-              auths_count: 0,
-              month: 'November',
-              api_calls_count: 50,
-              year: 2013
-            }, {
-              sms_count: 0,
-              calls_count: 0,
-              users_count: 7,
-              auths_count: 0,
-              month: 'December',
-              api_calls_count: 50,
-              year: 2013
-            }, {
-              sms_count: 0,
-              calls_count: 0,
-              users_count: 2,
-              auths_count: 0,
-              month: 'January',
-              api_calls_count: 8,
-              year: 2014
-            }, {
-              sms_count: 0,
-              calls_count: 0,
-              users_count: 3,
-              auths_count: 0,
-              month: 'February',
-              api_calls_count: 4,
-              year: 2014
-            }, {
-              sms_count: 0,
-              calls_count: 0,
-              users_count: 27,
-              auths_count: 0,
-              month: 'March',
-              api_calls_count: 208,
-              year: 2014
-            }, {
-              sms_count: 0,
-              calls_count: 0,
-              users_count: 17,
-              auths_count: 0,
-              month: 'April',
-              api_calls_count: 162,
-              year: 2014
-            }, {
-              sms_count: 0,
-              calls_count: 0,
-              users_count: 21,
-              auths_count: 0,
-              month: 'May',
-              api_calls_count: 891,
-              year: 2014
-            }, {
-              sms_count: 0,
-              calls_count: 0,
-              users_count: 15,
-              auths_count: 0,
-              month: 'June',
-              api_calls_count: 2076,
-              year: 2014
-            }, {
-              sms_count: 0,
-              calls_count: 0,
-              users_count: 1,
-              auths_count: 0,
-              month: 'July',
-              api_calls_count: 130,
-              year: 2014
-            }
-          ]
-        });
+      mocks.applicationStatistics.succeed();
 
-      var response = yield client.getApplicationStatistics();
-      response.should.have.keys('message', 'count', 'total_users', 'app_id', 'success', 'stats');
+      (yield client.getApplicationStatistics()).should.have.keys('message', 'count', 'total_users', 'app_id', 'success', 'stats');
     });
   });
 });

@@ -17,26 +17,27 @@ $ npm install co-authy
 
 ## API
 
-### AuthyClient(apiKey, apiUrl)
+### AuthyClient(apiKey, options)
 
 Initialize a new Authy Client.
 
- * `apiKey` Required.
- * `apiUrl` Defaults to production endpoint (`https://api.authy.com`).
+ * `apiKey`
+ * `options` (Optional)
+    * `host` Defaults to production endpoint (`https://api.authy.com`).
 
-### registerUser(email, cellphone, countryCode)
+### registerUser(email, cellphone, code)
 
 Enable two-factor authentication on a user. You should store the returned `authy_id` in your database for subsequent calls.
 
 Cellphone numbers are validated against a lenient validator to make sure only possible number are sent to the Authy API.
 
-The `countryCode`can be one of the following:
+The `code`can be one of the following:
 
 * A valid calling code (e.g. 351);
 * An ISO 3166-1 alpha-2 code (e.g. PT);
 * An ISO 3166-1 alpha-3 code (e.g. PTR);
 
-The library automatically converts conforming country codes to the corresponding calling code. For instance, if the `countryCode` passed is `PT`, then the calling code will be set to `351` without requiring extra work from the developer. Defaults to US (`1`) if omitted.
+The library automatically converts conforming country codes to the corresponding calling code. For instance, if the `code` passed is `PT`, then the calling code will be set to `351` without requiring extra work from the developer. Defaults to US (`1`) if omitted.
 
 The list of countries is sourced from the awesome [countries project](https://github.com/mledoze/countries) by [@mdledoze](https://github.com/mledoze) with added support for special International Networks codes +882 and +883.
 

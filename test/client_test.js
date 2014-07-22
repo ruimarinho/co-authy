@@ -124,6 +124,26 @@ describe('Client', function() {
       (yield client.registerUser('foo@bar.com', '408-550-3542', '1')).user.id.should.equal(1635);
     });
 
+    it('should send a properly formatted e164 version', function *() {
+      var numbers = [
+        [['15515025000', 'MX'], ['15515025000', '52']],
+        [['044 55 1502-5000', 'MX'], ['15515025000', '52']],
+        [['915555555', 'PT'], ['915555555', '351']],
+      ];
+
+      for (var i = 0; i < numbers.length; i++) {
+        mocks.registerUser.succeed({
+          matchBody: {
+            'user[email]': 'foo@bar.com',
+            'user[cellphone]': numbers[i][1][0],
+            'user[country_code]': numbers[i][1][1]
+          }
+        });
+
+        yield client.registerUser('foo@bar.com', numbers[i][0][0], numbers[i][0][1]);
+      };
+    });
+
     it('should return the authy user `id`', function *() {
       mocks.registerUser.succeed();
 

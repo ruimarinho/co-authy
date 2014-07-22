@@ -88,14 +88,16 @@ describe('Phone Number Validator', function() {
   it('should throw an error if the input is invalid for the country of origin', function() {
     var calls = 0;
     var numbers = [
-      ['PT', '+5215555123123'], // "MX" is expected
-      ['ES', '00 39 312 123 1234'], // "IT" is expected
-      ['ES', '+39 0187 1234(12)'], // "IT" is expected
-      ['CH', '00 1 809 555 5555'], // "US" is expected
-      ['PT', '+1 809 555 5555'], // "DO" is expected
-      ['GB', '07624123456'], // "IM" is expected
-      ['1', '+351 912 345 679'], // "PT" is expected
-      ['41', '+1 408-550-3542'], // "US" is expected
+      ['AU', '0011 1 408-550-3542'], // "US" was expected
+      ['PT', '+5215555123123'], // "MX" was expected
+      ['ES', '00 39 312 123 1234'], // "IT" was expected
+      ['ES', '+39 0187 1234(12)'], // "IT" was expected
+      ['CH', '00 1 809 555 5555'], // "US" was expected
+      ['PT', '+1 809 555 5555'], // "DO" was expected
+      ['GB', '07624123456'], // "IM" was expected
+      ['1', '+351 912 345 679'], // "PT" was expected
+      ['41', '+1 408-550-3542'], // "US" was expected
+      ['61', '0011 1 408-550-3542'], // "US" was expected
     ];
 
     numbers.forEach(function(pairs) {
@@ -127,6 +129,7 @@ describe('Phone Number Validator', function() {
       ['DO', '1 809 555 5555'],
       ['351', '+351 912 345 679'],
       ['1', '829 590 5555'],
+      ['1', '011 1 408-550-3542'],
       ['1809', '+1 809 234 5678'],
       ['1809', '+1 809 234 5678'],
     ].forEach(function(pairs) {

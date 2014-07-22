@@ -141,7 +141,7 @@ describe('Client', function() {
         });
 
         yield client.registerUser('foo@bar.com', numbers[i][0][0], numbers[i][0][1]);
-      };
+      }
     });
 
     it('should return the authy user `id`', function *() {

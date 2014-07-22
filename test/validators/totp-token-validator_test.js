@@ -18,7 +18,7 @@ describe('TOTP Token Validator', function() {
     Assert.prototype.TotpToken = assert;
   });
 
-  it('throw an error if the input value is an `array`', function() {
+  it('should throw an error if the input value is an `array`', function() {
     try {
       new Assert().TotpToken().validate([]);
     } catch (e) {
@@ -27,7 +27,7 @@ describe('TOTP Token Validator', function() {
     }
   });
 
-  it('throw an error if the input value is an `object`', function() {
+  it('should throw an error if the input value is an `object`', function() {
     try {
       new Assert().TotpToken().validate({});
     } catch (e) {
@@ -36,7 +36,7 @@ describe('TOTP Token Validator', function() {
     }
   });
 
-  it('throw an error if the input value is a `number`', function() {
+  it('should throw an error if the input value is a `number`', function() {
     try {
       new Assert().TotpToken().validate(12345678);
     } catch (e) {
@@ -45,7 +45,7 @@ describe('TOTP Token Validator', function() {
     }
   });
 
-  it('throw an error if the input value is not numeric', function() {
+  it('should throw an error if the input value is not numeric', function() {
     var input = ['-10', '1.101', '1e6', new Array(50).join('foo')];
     var calls = 0;
 
@@ -62,7 +62,7 @@ describe('TOTP Token Validator', function() {
     calls.should.equal(input.length);
   });
 
-  it('throw an error if the input value length is below minimum boundary', function() {
+  it('should throw an error if the input value length is below minimum boundary', function() {
     try {
       new Assert().TotpToken().validate('10');
     } catch (e) {
@@ -71,7 +71,7 @@ describe('TOTP Token Validator', function() {
     }
   });
 
-  it('throw an error if the input value length is above maximum boundary', function() {
+  it('should throw an error if the input value length is above maximum boundary', function() {
     var input = ['1001001001', '000000009', '0000000010'];
     var calls = 0;
 

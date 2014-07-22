@@ -15,7 +15,7 @@ var UnauthorizedAccessAuthyError = require('../errors/unauthorized-access-authy-
 var parse = require('../lib/response');
 
 describe('Response', function() {
-  describe('parse()', function() {
+  describe('#parse', function() {
     it('should support a string body', function() {
       var body = 'Requested URL was not found. Please check http://docs.authy.com/ to see the valid URLs';
       var statusCode = 401;

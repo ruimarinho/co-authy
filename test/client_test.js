@@ -17,7 +17,7 @@ var mocks = require('./mocks');
 var should = require('should');
 var sinon = require('sinon');
 
-describe.only('Client', function() {
+describe('Client', function() {
   var client;
 
   beforeEach(function(){
@@ -103,7 +103,7 @@ describe.only('Client', function() {
         }
       });
 
-      yield client.registerUser('foo@bar.com', '5627562233');
+      yield client.registerUser('foo@bar.com', '562 756--2233');
     });
 
     it('should throw an error if the authy user `id` is not returned', function *() {
@@ -116,6 +116,12 @@ describe.only('Client', function() {
         e.message.should.equal('`user.id` is missing');
         e.body.should.not.be.empty;
       }
+    });
+
+    it('should accept a `country_code` assigned to multiple countries', function *() {
+      mocks.registerUser.succeed();
+
+      (yield client.registerUser('foo@bar.com', '408-550-3542', '1')).user.id.should.equal(1635);
     });
 
     it('should return the authy user `id`', function *() {
@@ -167,7 +173,7 @@ describe.only('Client', function() {
         } catch (e) {
           e.should.be.instanceOf(ValidationFailedAuthyError);
           e.errors.cellphone.should.have.length(1);
-          e.errors.cellphone[0].show().assert.should.equal('PossiblePhoneNumber');
+          e.errors.cellphone[0].show().assert.should.equal('PhoneNumber');
         }
       });
 
@@ -190,7 +196,7 @@ describe.only('Client', function() {
         } catch (e) {
           e.should.be.instanceOf(ValidationFailedAuthyError);
           e.errors.country_code.should.have.length(1);
-          e.errors.country_code[0].show().assert.should.equal('Choice');
+          e.errors.country_code[0].show().assert.should.equal('CountryCallingCode');
         }
       });
     });

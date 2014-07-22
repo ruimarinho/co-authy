@@ -34,7 +34,7 @@
     "closure": "^1.0.3",
     "co-request": "^0.2.0",
     "debug": "^1.0.2",
-    "libphonenumber": "git://github.com/seegno/libphonenumber#refactor-google-closure",
+    "libphonenumber": "git://github.com/seegno/libphonenumber#support/refactor-google-closure",
     "lodash": "^2.4.1",
     "sf": "^0.1.7",
     "validator.js": "^0.6.1",

@@ -39,7 +39,7 @@ The `code`can be one of the following:
 
 The library automatically converts conforming country codes to the corresponding calling code. For instance, if the `code` passed is `PT`, then the calling code will be set to `351` without requiring extra work from the developer. Defaults to US (`1`) if omitted.
 
-The list of countries is sourced from the awesome [countries project](https://github.com/mledoze/countries) by [@mdledoze](https://github.com/mledoze) with added support for special International Networks codes +882 and +883.
+The list of countries is sourced from the awesome [countries project](https://github.com/mledoze/countries) by [@mledoze](https://github.com/mledoze) with added support for special International Networks codes +882 and +883.
 
 ### verifyToken(authyId, token, options)
 

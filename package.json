@@ -1,10 +1,6 @@
 {
   "name": "co-authy",
   "version": "0.0.8",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/seegno/co-authy"
-  },
   "description": "An Authy client based on generators",
   "keywords": [
     "auth",
@@ -15,17 +11,30 @@
     "two-factor",
     "two factor",
     "2 factor",
-    "2fa"
+    "2fa",
+    "two step",
+    "2step"
   ],
+  "author": {
+    "name": "Rui Marinho",
+    "email": "rui.marinho@seegno.com",
+    "url": "http://seegno.com"
+  },
+  "homepage": "https://www.authy.com",
+  "bugs": "https://github.com/seegno/co-authy/issues",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/seegno/co-authy.git"
+  },
   "scripts": {
     "test": "NODE_ENV=test ./node_modules/.bin/mocha --harmony-generators test/*_test.js test/**/*_test.js"
   },
-  "license": "MIT",
   "dependencies": {
     "closure": "^1.0.3",
     "co-request": "^0.2.0",
     "debug": "^1.0.2",
-    "libphonenumber": "git://github.com/thallium205/libphonenumber#19f8dc8fc7",
+    "google-libphonenumber": "git://github.com/seegno/libphonenumber#support/refactor-google-closure",
     "lodash": "^2.4.1",
     "sf": "^0.1.7",
     "validator.js": "^0.6.1",
@@ -38,9 +47,7 @@
     "sinon": "^1.10.2",
     "should": "^4.0.4"
   },
-  "author": {
-    "name": "Rui Marinho",
-    "email": "rui.marinho@seegno.com",
-    "url": "http://seegno.com"
+  "engines": {
+    "node": ">= 0.11"
   }
 }

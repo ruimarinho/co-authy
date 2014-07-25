@@ -54,8 +54,12 @@ var mockRequestCall = function mockRequestCall(statusCode, options) {
       response = 200 === statusCode ? responses.success : responses.failure;
   }
 
-  nock('http://sandbox-api.authy.com')
+  return nock('http://sandbox-api.authy.com')
     .filteringPath(function(path) {
+      if (!(/\/call\//).test(path)) {
+        return path;
+      }
+
       if (options.force && !(/force=true/.test(path))) {
         throw new Error('`force=true` missing from path');
       }

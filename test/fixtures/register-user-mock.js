@@ -74,10 +74,12 @@ var mockRegisterUser = function mockRegisterUser(statusCode, options) {
     });
   }
 
-  nock('http://sandbox-api.authy.com')
+  return nock('http://sandbox-api.authy.com')
     .filteringPath(function(path) {
-      path = path.replace(/&force=[^&]*/g, '');
-      path = path.replace(/&shortcode=[^&]*/g, '');
+      if (!(/\/new/).test(path)) {
+        return path;
+      }
+
       path = path.replace(/api_key=[^&]*/g, 'api_key={apiKey}');
 
       return path;

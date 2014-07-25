@@ -31,8 +31,12 @@ function mockGetApplicationDetails(statusCode, options) {
 
   var response = 200 === statusCode ? responses.succeed : responses.fail;
 
-  nock('http://sandbox-api.authy.com')
+  return nock('http://sandbox-api.authy.com')
     .filteringPath(function(path) {
+      if (!(/\/details/).test(path)) {
+        return path;
+      }
+
       return path.replace(/api_key=[^&]*/g, 'api_key={apiKey}');
     })
     .get('/protected/json/app/details?api_key={apiKey}')

@@ -28,8 +28,12 @@ var mockGetUserStatus = function mockGetUserStatus(statusCode, options) {
 
   var reply = 200 === statusCode ? replies.success : replies.failure;
 
-  nock('http://sandbox-api.authy.com')
+  return nock('http://sandbox-api.authy.com')
     .filteringPath(function(path) {
+      if (!(/\/status/).test(path)) {
+        return path;
+      }
+
       path = path.replace(/api_key=[^&]*/g, 'api_key={apiKey}');
       path = path.replace(/\/users\/.*\/status/, '/users/{authyId}/status');
 

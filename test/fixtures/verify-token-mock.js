@@ -42,8 +42,12 @@ var mockVerifyToken = function mockVerifyToken(statusCode, options) {
       reply = 200 === statusCode ? replies.success : replies.failure;
   }
 
-  nock('http://sandbox-api.authy.com')
+  return nock('http://sandbox-api.authy.com')
     .filteringPath(function(path) {
+      if (!(/\/verify\//).test(path)) {
+        return path;
+      }
+
       if (options.force && !(/force=true/.test(path))) {
         throw new Error('`force=true` missing from path');
       }

@@ -126,8 +126,12 @@ function mockGetApplicationStatistics(statusCode, options) {
 
   var response = 200 === statusCode ? responses.succeed : responses.fail;
 
-  nock('http://sandbox-api.authy.com')
+  return nock('http://sandbox-api.authy.com')
     .filteringPath(function(path) {
+      if (!(/\/stats/).test(path)) {
+        return path;
+      }
+
       return path.replace(/api_key=[^&]*/g, 'api_key={apiKey}');
     })
     .get('/protected/json/app/stats?api_key={apiKey}')

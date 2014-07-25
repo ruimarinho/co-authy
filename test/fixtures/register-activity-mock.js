@@ -23,8 +23,12 @@ function mockRegisterActivity(statusCode, options) {
 
   var response = 200 === statusCode ? responses.succeed : responses.fail;
 
-  nock('http://sandbox-api.authy.com')
+  return nock('http://sandbox-api.authy.com')
     .filteringPath(function(path) {
+      if (!(/\/register_activity/).test(path)) {
+        return path;
+      }
+
       path = path.replace(/api_key=[^&]*/g, 'api_key={apiKey}');
       path = path.replace(/\/users\/.*\/register_activity/, '/users/{authyId}/register_activity');
 

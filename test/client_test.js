@@ -70,18 +70,6 @@ describe('Client', function() {
       yield client.registerUser('foo@bar.com', '911234567', 'PT');
     });
 
-    it('should support `country_code` in the ISO 3166-1 alpha-3 numeric format', function *() {
-      mocks.registerUser.succeed({
-        matchBody: {
-          'user[email]': 'foo@bar.com',
-          'user[cellphone]': '911234567',
-          'user[country_code]': '351'
-        }
-      });
-
-      yield client.registerUser('foo@bar.com', '911234567', 'PRT');
-    });
-
     it('should support the special International Networks `country_code` (+882)', function *() {
       mocks.registerUser.succeed();
 

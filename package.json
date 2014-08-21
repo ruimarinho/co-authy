@@ -3,7 +3,7 @@
   "version": "0.0.11",
   "repository": {
     "type": "git",
-    "url": "https://github.com/seegno/co-authy"
+    "url": "https://github.com/seegno/co-authy.git"
   },
   "description": "An Authy client based on generators",
   "keywords": [
@@ -27,10 +27,6 @@
   "homepage": "https://www.authy.com",
   "bugs": "https://github.com/seegno/co-authy/issues",
   "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/seegno/co-authy.git"
-  },
   "scripts": {
     "test": "NODE_ENV=test ./node_modules/.bin/mocha --harmony-generators test/*_test.js test/**/*_test.js"
   },
@@ -38,18 +34,18 @@
     "closure": "^1.0.3",
     "co-request": "^0.2.0",
     "debug": "^1.0.2",
-    "google-libphonenumber": "^0.0.3",
+    "google-libphonenumber": "^0.0.4",
     "lodash": "^2.4.1",
     "sf": "^0.1.7",
     "validator.js": "^1.0.0",
-    "world-countries": "^1.4.1"
+    "world-countries": "^1.5.0"
   },
   "devDependencies": {
-    "co-mocha": "0.0.4",
+    "co-mocha": "^1.0.0",
     "mocha": "^1.20.1",
-    "nock": "^0.43.0",
-    "sinon": "^1.10.2",
-    "should": "^4.0.4"
+    "nock": "^0.45.0",
+    "should": "^4.0.4",
+    "sinon": "^1.10.2"
   },
   "engines": {
     "node": ">= 0.11"

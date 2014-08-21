@@ -3,9 +3,6 @@
  * Test dependencies
  */
 
-
-require('should');
-
 var parse = require('../../lib/parsers/input-parser').parseRawInput;
 
 /**
@@ -40,14 +37,6 @@ describe('Input Parser', function() {
 
     it('should support a valid `code` in the numeric format', function *() {
       parse('915555555', '351').should.eql({
-        cellphone: '915555555',
-        countryCode: 'PT',
-        countryCallingCode: '351'
-      });
-    });
-
-    it('should support a valid `code` in the ISO 3166-1 alpha-3 format', function *() {
-      parse('915555555', 'PRT').should.eql({
         cellphone: '915555555',
         countryCode: 'PT',
         countryCallingCode: '351'

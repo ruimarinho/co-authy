@@ -1,4 +1,16 @@
 
+0.0.12 / 2014-08-21
+==================
+
+ * Add note about non-geographical entities
+ * Update country code validation
+ * Update google-libphonenumber@0.0.4
+ * Update world-countries@0.5.0
+ * Update co-mocha@1.0.0
+ * Update nock@0.45.0
+ * Update should@4.0.4
+ * Update sinon@1.10.2
+
 0.0.11 / 2014-08-04
 ==================
 

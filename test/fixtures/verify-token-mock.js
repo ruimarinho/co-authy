@@ -1,6 +1,6 @@
 
 /**
- * Module dependencies
+ * Module dependencies.
  */
 
 var nock = require('nock');
@@ -72,8 +72,7 @@ module.exports.succeed = function(options) {
 };
 
 /**
- * Expose a request that will `succeed` with the `force` parameter set to
- * `true`.
+ * Expose a request that will `succeed` with the `force` parameter set to `true`.
  */
 
 module.exports.succeedWithForce = function() {

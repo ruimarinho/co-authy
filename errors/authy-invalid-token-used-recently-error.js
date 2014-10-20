@@ -7,7 +7,7 @@ var AuthyInvalidTokenError = require('./authy-invalid-token-error');
 var util = require('util');
 
 /**
- * Token used recently error
+ * Token used recently error.
  */
 
 function AuthyInvalidTokenUsedRecentlyError(body) {
@@ -16,13 +16,13 @@ function AuthyInvalidTokenUsedRecentlyError(body) {
 }
 
 /**
- * Inherit prototype
+ * Inherit prototype.
  */
 
 util.inherits(AuthyInvalidTokenUsedRecentlyError, AuthyInvalidTokenError);
 
 /**
- * Export constructor
+ * Export constructor.
  */
 
 module.exports = AuthyInvalidTokenUsedRecentlyError;

@@ -7,7 +7,7 @@ var AuthyHttpError = require('./authy-http-error');
 var util = require('util');
 
 /**
- * Unauthorized access error
+ * Unauthorized access error.
  *
  * Might be due to incorrect URL endpoint, invalid token supplied
  * and incorrect or invalid API key.
@@ -19,13 +19,13 @@ function AuthyUnauthorizedAccessError(body) {
 }
 
 /**
- * Inherit prototype
+ * Inherit prototype.
  */
 
 util.inherits(AuthyUnauthorizedAccessError, AuthyHttpError);
 
 /**
- * Export constructor
+ * Export constructor.
  */
 
 module.exports = AuthyUnauthorizedAccessError;

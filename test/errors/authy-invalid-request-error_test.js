@@ -1,6 +1,6 @@
 
 /**
- * Test dependencies
+ * Test dependencies.
  */
 
 require('should');

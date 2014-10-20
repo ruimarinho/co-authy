@@ -6,9 +6,8 @@
 var AuthyError = require('./authy-error');
 var util = require('util');
 
-
 /**
- * Invalid request error
+ * Invalid request error.
  */
 
 function AuthyHttpError(message, body) {
@@ -31,13 +30,13 @@ function AuthyHttpError(message, body) {
 }
 
 /**
- * Inherit prototype
+ * Inherit prototype.
  */
 
 util.inherits(AuthyHttpError, AuthyError);
 
 /**
- * Export constructor
+ * Export constructor.
  */
 
 module.exports = AuthyHttpError;

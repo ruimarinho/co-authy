@@ -7,8 +7,7 @@ var AuthyUnauthorizedAccessError = require('./authy-unauthorized-access-error');
 var util = require('util');
 
 /**
- * Invalid API key error
- *
+ * Invalid API key error.
  */
 
 function AuthyInvalidApiKeyError(body) {
@@ -17,13 +16,13 @@ function AuthyInvalidApiKeyError(body) {
 }
 
 /**
- * Inherit prototype
+ * Inherit prototype.
  */
 
 util.inherits(AuthyInvalidApiKeyError, AuthyUnauthorizedAccessError);
 
 /**
- * Export constructor
+ * Export constructor.
  */
 
 module.exports = AuthyInvalidApiKeyError;

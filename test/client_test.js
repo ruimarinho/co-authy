@@ -1,7 +1,7 @@
 /* jshint camelcase:false*/
 
 /**
- * Test dependencies
+ * Test dependencies.
  */
 
 var AuthyClient = require('..');

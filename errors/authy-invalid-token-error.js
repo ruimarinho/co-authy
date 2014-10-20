@@ -7,7 +7,7 @@ var AuthyUnauthorizedAccessError = require('./authy-unauthorized-access-error');
 var util = require('util');
 
 /**
- * Invalid token error
+ * Invalid token error.
  */
 
 function AuthyInvalidTokenError(body) {
@@ -16,13 +16,13 @@ function AuthyInvalidTokenError(body) {
 }
 
 /**
- * Inherit prototype
+ * Inherit prototype.
  */
 
 util.inherits(AuthyInvalidTokenError, AuthyUnauthorizedAccessError);
 
 /**
- * Export constructor
+ * Export constructor.
  */
 
 module.exports = AuthyInvalidTokenError;

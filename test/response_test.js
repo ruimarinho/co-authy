@@ -5,13 +5,13 @@
 
 require('should');
 
-var HttpAuthyError = require('../errors/unauthorized-access-authy-error');
-var InvalidApiKeyAuthyError = require('../errors/invalid-api-key-authy-error');
-var InvalidRequestAuthyError = require('../errors/invalid-request-authy-error');
-var InvalidTokenAuthyError = require('../errors/invalid-token-authy-error');
-var InvalidTokenUsedRecentlyAuthyError = require('../errors/invalid-token-used-recently-authy-error');
-var ServiceUnavailableAuthyError = require('../errors/service-unavailable-authy-error');
-var UnauthorizedAccessAuthyError = require('../errors/unauthorized-access-authy-error');
+var AuthyHttpError = require('../errors/authy-unauthorized-access-error');
+var AuthyInvalidApiKeyError = require('../errors/authy-invalid-api-key-error');
+var AuthyInvalidRequestError = require('../errors/authy-invalid-request-error');
+var AuthyInvalidTokenError = require('../errors/authy-invalid-token-error');
+var AuthyInvalidTokenUsedRecentlyError = require('../errors/authy-invalid-token-used-recently-error');
+var AuthyServiceUnavailableError = require('../errors/authy-service-unavailable-error');
+var AuthyUnauthorizedAccessError = require('../errors/authy-unauthorized-access-error');
 var parse = require('../lib/response');
 
 describe('Response', function() {
@@ -23,7 +23,7 @@ describe('Response', function() {
       try {
         parse({ body: body, statusCode: statusCode });
       } catch (e) {
-        e.should.be.instanceOf(UnauthorizedAccessAuthyError);
+        e.should.be.instanceOf(AuthyUnauthorizedAccessError);
         e.message.should.equal('Unauthorized access');
         e.body.should.equal(body);
       }
@@ -32,13 +32,13 @@ describe('Response', function() {
     describe('status code 503', function() {
       var statusCode = 503;
 
-      it('should throw an `ServiceUnavailableAuthyError`', function() {
+      it('should throw an `AuthyServiceUnavailableError`', function() {
         var body = { message: 'Rate limit exceeded' };
 
         try {
           parse({ body: body, statusCode: statusCode });
         } catch (e) {
-          e.should.be.instanceOf(ServiceUnavailableAuthyError);
+          e.should.be.instanceOf(AuthyServiceUnavailableError);
           e.message.should.equal(body.message);
           e.body.should.equal(body);
         }
@@ -48,7 +48,7 @@ describe('Response', function() {
     describe('status code 401', function() {
       var statusCode = 401;
 
-      it('should throw an `InvalidTokenUsedRecentlyAuthyError` if token has been used recently', function() {
+      it('should throw an `AuthyInvalidTokenUsedRecentlyError` if token has been used recently', function() {
         var body = {
           message: 'Token is invalid. Token was used recently.',
           success: false,
@@ -60,13 +60,13 @@ describe('Response', function() {
         try {
           parse({ body: body, statusCode: statusCode });
         } catch (e) {
-          e.should.be.instanceOf(InvalidTokenUsedRecentlyAuthyError);
+          e.should.be.instanceOf(AuthyInvalidTokenUsedRecentlyError);
           e.message.should.equal(body.message);
           e.body.should.equal(body);
         }
       });
 
-      it('should throw an `InvalidTokenAuthyError` if token is invalid', function() {
+      it('should throw an `AuthyInvalidTokenError` if token is invalid', function() {
         var body = {
           message: 'Token is invalid.',
           token: 'is invalid',
@@ -79,13 +79,13 @@ describe('Response', function() {
         try {
           parse({ body: body, statusCode: statusCode });
         } catch (e) {
-          e.should.be.instanceOf(InvalidTokenAuthyError);
+          e.should.be.instanceOf(AuthyInvalidTokenError);
           e.message.should.equal(body.message);
           e.body.should.equal(body);
         }
       });
 
-      it('should throw an `InvalidApiKeyAuthyError` if API key is invalid', function() {
+      it('should throw an `AuthyInvalidApiKeyError` if API key is invalid', function() {
         var body = {
           message: 'Invalid API key.',
           success: false,
@@ -97,13 +97,13 @@ describe('Response', function() {
         try {
           parse({ body: body, statusCode: statusCode });
         } catch (e) {
-          e.should.be.instanceOf(InvalidApiKeyAuthyError);
+          e.should.be.instanceOf(AuthyInvalidApiKeyError);
           e.message.should.equal(body.message);
           e.body.should.equal(body);
         }
       });
 
-      it('should throw an `UnauthorizedAccessAuthyError` as a fallback', function() {
+      it('should throw an `AuthyUnauthorizedAccessError` as a fallback', function() {
         var body = {
           message: 'A specially unknown message.',
           success: false,
@@ -115,7 +115,7 @@ describe('Response', function() {
         try {
           parse({ body: body, statusCode: statusCode });
         } catch (e) {
-          e.should.be.instanceOf(UnauthorizedAccessAuthyError);
+          e.should.be.instanceOf(AuthyUnauthorizedAccessError);
           e.message.should.equal(body.message);
           e.body.should.equal(body);
         }
@@ -125,7 +125,7 @@ describe('Response', function() {
     describe('status code 400', function() {
       var statusCode = 400;
 
-      it('should throw an `InvalidRequestAuthyError`', function() {
+      it('should throw an `AuthyInvalidRequestError`', function() {
         var body =  {
           message: 'User was not valid.',
           email: 'is invalid and can\'t be blank',
@@ -139,7 +139,7 @@ describe('Response', function() {
         try {
           parse({ body: body, statusCode: statusCode });
         } catch (e) {
-          e.should.be.instanceOf(InvalidRequestAuthyError);
+          e.should.be.instanceOf(AuthyInvalidRequestError);
           e.message.should.equal(body.message);
           e.body.should.equal(body);
         }
@@ -153,7 +153,7 @@ describe('Response', function() {
         try {
           parse({ body: body, statusCode: statusCode });
         } catch (e) {
-          e.should.be.instanceOf(HttpAuthyError);
+          e.should.be.instanceOf(AuthyHttpError);
           e.message.should.equal(body);
           e.body.should.equal(body);
         }

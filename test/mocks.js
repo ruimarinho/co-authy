@@ -1,6 +1,6 @@
 
 /**
- * Module exports
+ * Module exports.
  */
 
 module.exports = {

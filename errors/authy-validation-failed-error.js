@@ -7,22 +7,22 @@ var AuthyError = require('./authy-error');
 var util = require('util');
 
 /**
- * Client-side validation failed error
+ * Client-side validation failed error.
  */
 
-function ValidationFailedAuthyError(errors) {
+function AuthyValidationFailedError(errors) {
   AuthyError.call(this, 'Validation failed', { errors: errors });
   Error.captureStackTrace(this, this.constructor);
 }
 
 /**
- * Inherit prototype
+ * Inherit prototype.
  */
 
-util.inherits(ValidationFailedAuthyError, AuthyError);
+util.inherits(AuthyValidationFailedError, AuthyError);
 
 /**
- * Export constructor
+ * Export constructor.
  */
 
-module.exports = ValidationFailedAuthyError;
+module.exports = AuthyValidationFailedError;

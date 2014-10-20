@@ -1,6 +1,6 @@
 
 /**
- * Module dependencies
+ * Module dependencies.
  */
 
 var _ = require('lodash');
@@ -106,8 +106,7 @@ module.exports.succeedWithMissingUserId = function(options) {
 };
 
 /**
- * Expose a request that will `fail` due to validation errors on the remote
- * end.
+ * Expose a request that will `fail` due to validation errors on the remote end.
  */
 
 module.exports.failWithInvalidRequest = function(errors) {

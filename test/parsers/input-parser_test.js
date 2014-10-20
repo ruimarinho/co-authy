@@ -1,12 +1,12 @@
 
 /**
- * Test dependencies
+ * Test dependencies.
  */
 
 var parse = require('../../lib/parsers/input-parser').parseRawInput;
 
 /**
- * Input Parser tests
+ * Input Parser tests.
  */
 
 describe('Input Parser', function() {

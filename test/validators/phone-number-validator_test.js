@@ -1,6 +1,6 @@
 
 /**
- * Test dependencies
+ * Test dependencies.
  */
 
 
@@ -10,7 +10,7 @@ var assert = require('../../lib/validators/phone-number-validator');
 var should = require('should');
 
 /**
- * Phone Number Validator tests
+ * Phone Number Validator tests.
  */
 
 describe('Phone Number Validator', function() {

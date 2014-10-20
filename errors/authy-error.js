@@ -27,13 +27,13 @@ function AuthyError(message, attributes) {
 }
 
 /**
- * Inherit prototype
+ * Inherit prototype.
  */
 
 util.inherits(AuthyError, Error);
 
 /**
- * Export constructor
+ * Export constructor.
  */
 
 module.exports = AuthyError;

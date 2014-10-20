@@ -1,6 +1,6 @@
 
 /**
- * Test dependencies
+ * Test dependencies.
  */
 
 require('should');
@@ -10,7 +10,7 @@ var Violation = require('validator.js').Violation;
 var assert = require('../../lib/validators/totp-token-validator');
 
 /**
- * TOTP Token Validator tests
+ * TOTP Token Validator tests.
  */
 
 describe('TOTP Token Validator', function() {

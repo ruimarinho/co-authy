@@ -3,11 +3,11 @@
  * Module dependencies.
  */
 
-var HttpAuthyError = require('./http-authy-error');
+var AuthyHttpError = require('./authy-http-error');
 var util = require('util');
 
 /**
- * Service unavailable
+ * Service unavailable.
  *
  * Can happen due to many reasons, including:
  *
@@ -16,19 +16,19 @@ var util = require('util');
  *  - The API usage limit was reached.
  */
 
-function ServiceUnavailableAuthyError(body) {
-  HttpAuthyError.call(this, 'Service unavailable', body);
+function AuthyServiceUnavailableError(body) {
+  AuthyHttpError.call(this, 'Service unavailable', body);
   Error.captureStackTrace(this, this.constructor);
 }
 
 /**
- * Inherit prototype
+ * Inherit prototype.
  */
 
-util.inherits(ServiceUnavailableAuthyError, HttpAuthyError);
+util.inherits(AuthyServiceUnavailableError, AuthyHttpError);
 
 /**
- * Export constructor
+ * Export constructor.
  */
 
-module.exports = ServiceUnavailableAuthyError;
+module.exports = AuthyServiceUnavailableError;

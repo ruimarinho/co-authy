@@ -11,7 +11,7 @@ var util = require('util');
  * Invalid request error
  */
 
-function HttpAuthyError(message, body) {
+function AuthyHttpError(message, body) {
   var attributes = {
     body: body || {}
   };
@@ -34,10 +34,10 @@ function HttpAuthyError(message, body) {
  * Inherit prototype
  */
 
-util.inherits(HttpAuthyError, AuthyError);
+util.inherits(AuthyHttpError, AuthyError);
 
 /**
  * Export constructor
  */
 
-module.exports = HttpAuthyError;
+module.exports = AuthyHttpError;

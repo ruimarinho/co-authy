@@ -3,7 +3,7 @@
  * Module dependencies.
  */
 
-var HttpAuthyError = require('./http-authy-error');
+var AuthyHttpError = require('./authy-http-error');
 var util = require('util');
 
 /**
@@ -13,8 +13,8 @@ var util = require('util');
  * and incorrect or invalid API key.
  */
 
-function UnauthorizedAccessAuthyError(body) {
-  HttpAuthyError.call(this, 'Unauthorized access', body);
+function AuthyUnauthorizedAccessError(body) {
+  AuthyHttpError.call(this, 'Unauthorized access', body);
   Error.captureStackTrace(this, this.constructor);
 }
 
@@ -22,10 +22,10 @@ function UnauthorizedAccessAuthyError(body) {
  * Inherit prototype
  */
 
-util.inherits(UnauthorizedAccessAuthyError, HttpAuthyError);
+util.inherits(AuthyUnauthorizedAccessError, AuthyHttpError);
 
 /**
  * Export constructor
  */
 
-module.exports = UnauthorizedAccessAuthyError;
+module.exports = AuthyUnauthorizedAccessError;

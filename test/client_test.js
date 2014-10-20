@@ -6,12 +6,12 @@
 
 var AuthyClient = require('..');
 var AuthyError = require('../errors/authy-error');
-var HttpAuthyError = require('../errors/http-authy-error');
-var InvalidApiKeyAuthyError = require('../errors/invalid-api-key-authy-error');
-var InvalidRequestAuthyError = require('../errors/invalid-request-authy-error');
-var InvalidTokenAuthyError = require('../errors/invalid-token-authy-error');
-var InvalidTokenUsedRecentlyAuthyError = require('../errors/invalid-token-used-recently-authy-error');
-var ValidationFailedAuthyError = require('../errors/validation-failed-authy-error');
+var AuthyHttpError = require('../errors/authy-http-error');
+var AuthyInvalidApiKeyError = require('../errors/authy-invalid-api-key-error');
+var AuthyInvalidRequestError = require('../errors/authy-invalid-request-error');
+var AuthyInvalidTokenError = require('../errors/authy-invalid-token-error');
+var AuthyInvalidTokenUsedRecentlyError = require('../errors/authy-invalid-token-used-recently-error');
+var AuthyValidationFailedError = require('../errors/authy-validation-failed-error');
 var Validator = require('validator.js').Validator;
 var mocks = require('./mocks');
 var should = require('should');
@@ -29,7 +29,7 @@ describe('Client', function() {
     try {
       new AuthyClient(undefined, { host: 'http://sandbox-api.authy.com' });
     } catch (e) {
-      e.should.be.instanceOf(ValidationFailedAuthyError);
+      e.should.be.instanceOf(AuthyValidationFailedError);
       e.errors.api_key.show().assert.should.equal('HaveProperty');
     }
   });
@@ -53,7 +53,7 @@ describe('Client', function() {
       try {
         yield c.registerUser('foo@bar.com', '408-550-3542');
       } catch (e) {
-        e.should.be.instanceOf(InvalidApiKeyAuthyError);
+        e.should.be.instanceOf(AuthyInvalidApiKeyError);
         e.message.should.equal('Invalid API key.');
       }
     });
@@ -145,7 +145,7 @@ describe('Client', function() {
 
           should.fail();
         } catch (e) {
-          e.should.be.instanceOf(ValidationFailedAuthyError);
+          e.should.be.instanceOf(AuthyValidationFailedError);
           e.errors.email.show().assert.should.equal('HaveProperty');
         }
       });
@@ -156,7 +156,7 @@ describe('Client', function() {
 
           should.fail();
         } catch (e) {
-          e.should.be.instanceOf(ValidationFailedAuthyError);
+          e.should.be.instanceOf(AuthyValidationFailedError);
           e.errors.email.should.have.length(1);
           e.errors.email[0].show().assert.should.equal('Email');
         }
@@ -168,7 +168,7 @@ describe('Client', function() {
 
           should.fail();
         } catch (e) {
-          e.should.be.instanceOf(ValidationFailedAuthyError);
+          e.should.be.instanceOf(AuthyValidationFailedError);
           e.errors.cellphone.show().assert.should.equal('HaveProperty');
         }
       });
@@ -179,7 +179,7 @@ describe('Client', function() {
 
           should.fail();
         } catch (e) {
-          e.should.be.instanceOf(ValidationFailedAuthyError);
+          e.should.be.instanceOf(AuthyValidationFailedError);
           e.errors.cellphone.should.have.length(1);
           e.errors.cellphone[0].show().assert.should.equal('PhoneNumber');
         }
@@ -191,7 +191,7 @@ describe('Client', function() {
 
           should.fail();
         } catch (e) {
-          e.should.be.instanceOf(ValidationFailedAuthyError);
+          e.should.be.instanceOf(AuthyValidationFailedError);
           e.errors.cellphone[0].show().assert.should.equal('Required');
         }
       });
@@ -202,7 +202,7 @@ describe('Client', function() {
 
           should.fail();
         } catch (e) {
-          e.should.be.instanceOf(ValidationFailedAuthyError);
+          e.should.be.instanceOf(AuthyValidationFailedError);
           e.errors.country_code.should.have.length(1);
           e.errors.country_code[0].show().assert.should.equal('CountryCallingCode');
         }
@@ -220,7 +220,7 @@ describe('Client', function() {
 
           should.fail();
         } catch (e) {
-          e.should.be.instanceOf(InvalidRequestAuthyError);
+          e.should.be.instanceOf(AuthyInvalidRequestError);
           e.message.should.equal('User was not valid.');
           e.errors.should.eql({ message: 'User was not valid.', email: 'is invalid and can\'t be blank' });
         }
@@ -238,7 +238,7 @@ describe('Client', function() {
 
           should.fail();
         } catch (e) {
-          e.should.be.instanceOf(InvalidRequestAuthyError);
+          e.should.be.instanceOf(AuthyInvalidRequestError);
           e.message.should.equal('User was not valid.');
           e.errors.should.eql({ message: 'User was not valid.', email: 'is invalid' });
         }
@@ -256,7 +256,7 @@ describe('Client', function() {
 
           should.fail();
         } catch (e) {
-          e.should.be.instanceOf(InvalidRequestAuthyError);
+          e.should.be.instanceOf(AuthyInvalidRequestError);
           e.message.should.equal('User was not valid.');
           e.errors.should.eql({ message: 'User was not valid.', cellphone: 'is invalid' });
         }
@@ -274,7 +274,7 @@ describe('Client', function() {
 
           should.fail();
         } catch (e) {
-          e.should.be.instanceOf(InvalidRequestAuthyError);
+          e.should.be.instanceOf(AuthyInvalidRequestError);
           e.message.should.equal('User was not valid.');
           e.errors.should.eql({ message: 'User was not valid.', cellphone: 'is invalid' });
         }
@@ -292,7 +292,7 @@ describe('Client', function() {
 
           should.fail();
         } catch (e) {
-          e.should.be.instanceOf(InvalidRequestAuthyError);
+          e.should.be.instanceOf(AuthyInvalidRequestError);
           e.message.should.equal('User was not valid.');
           e.errors.should.eql({ message: 'User was not valid.', country_code: 'is not supported' });
         }
@@ -310,7 +310,7 @@ describe('Client', function() {
 
           should.fail();
         } catch (e) {
-          e.should.be.instanceOf(ValidationFailedAuthyError);
+          e.should.be.instanceOf(AuthyValidationFailedError);
           e.errors.authy_id.show().assert.should.equal('HaveProperty');
         }
       });
@@ -321,7 +321,7 @@ describe('Client', function() {
 
           should.fail();
         } catch (e) {
-          e.should.be.instanceOf(ValidationFailedAuthyError);
+          e.should.be.instanceOf(AuthyValidationFailedError);
           e.errors.authy_id.should.have.length(2);
           e.errors.authy_id[0].show().assert.should.equal('Required');
           e.errors.authy_id[1].show().assert.should.equal('GreaterThan');
@@ -334,7 +334,7 @@ describe('Client', function() {
 
           should.fail();
         } catch (e) {
-          e.should.be.instanceOf(ValidationFailedAuthyError);
+          e.should.be.instanceOf(AuthyValidationFailedError);
           e.errors.token.show().assert.should.equal('HaveProperty');
         }
       });
@@ -345,7 +345,7 @@ describe('Client', function() {
 
           should.fail();
         } catch (e) {
-          e.should.be.instanceOf(ValidationFailedAuthyError);
+          e.should.be.instanceOf(AuthyValidationFailedError);
           e.errors.token.should.have.length(2);
           e.errors.token[0].show().assert.should.equal('Required');
           e.errors.token[1].show().assert.should.equal('TotpToken');
@@ -358,7 +358,7 @@ describe('Client', function() {
 
           should.fail();
         } catch (e) {
-          e.should.be.instanceOf(ValidationFailedAuthyError);
+          e.should.be.instanceOf(AuthyValidationFailedError);
           e.errors.force.should.have.length(1);
           e.errors.force[0].show().assert.should.equal('Callback');
         }
@@ -376,7 +376,7 @@ describe('Client', function() {
 
           should.fail();
         } catch (e) {
-          e.should.be.instanceOf(InvalidTokenAuthyError);
+          e.should.be.instanceOf(AuthyInvalidTokenError);
           e.message.should.equal('Token is invalid.');
           e.body.should.not.be.empty;
         }
@@ -392,7 +392,7 @@ describe('Client', function() {
 
           should.fail();
         } catch (e) {
-          e.should.be.instanceOf(InvalidTokenUsedRecentlyAuthyError);
+          e.should.be.instanceOf(AuthyInvalidTokenUsedRecentlyError);
           e.message.should.equal('Token is invalid. Token was used recently.');
           e.body.should.not.be.empty;
         }
@@ -420,7 +420,7 @@ describe('Client', function() {
 
           should.fail();
         } catch (e) {
-          e.should.be.instanceOf(ValidationFailedAuthyError);
+          e.should.be.instanceOf(AuthyValidationFailedError);
           e.errors.authy_id.show().assert.should.equal('HaveProperty');
         }
       });
@@ -431,7 +431,7 @@ describe('Client', function() {
 
           should.fail();
         } catch (e) {
-          e.should.be.instanceOf(ValidationFailedAuthyError);
+          e.should.be.instanceOf(AuthyValidationFailedError);
           e.errors.authy_id.should.have.length(2);
           e.errors.authy_id[0].show().assert.should.equal('Required');
           e.errors.authy_id[1].show().assert.should.equal('GreaterThan');
@@ -444,7 +444,7 @@ describe('Client', function() {
 
           should.fail();
         } catch (e) {
-          e.should.be.instanceOf(ValidationFailedAuthyError);
+          e.should.be.instanceOf(AuthyValidationFailedError);
           e.errors.force.should.have.length(1);
           e.errors.force[0].show().assert.should.equal('Callback');
         }
@@ -456,7 +456,7 @@ describe('Client', function() {
 
           should.fail();
         } catch (e) {
-          e.should.be.instanceOf(ValidationFailedAuthyError);
+          e.should.be.instanceOf(AuthyValidationFailedError);
           e.errors.shortcode.should.have.length(1);
           e.errors.shortcode[0].show().assert.should.equal('Callback');
         }
@@ -472,7 +472,7 @@ describe('Client', function() {
         try {
           yield client.requestSms(1600);
         } catch (e) {
-          e.should.be.instanceOf(HttpAuthyError);
+          e.should.be.instanceOf(AuthyHttpError);
           e.message.should.equal('User not found.');
           e.body.should.not.be.empty;
         }
@@ -526,7 +526,7 @@ describe('Client', function() {
 
           should.fail();
         } catch (e) {
-          e.should.be.instanceOf(ValidationFailedAuthyError);
+          e.should.be.instanceOf(AuthyValidationFailedError);
           e.errors.authy_id.show().assert.should.equal('HaveProperty');
         }
       });
@@ -537,7 +537,7 @@ describe('Client', function() {
 
           should.fail();
         } catch (e) {
-          e.should.be.instanceOf(ValidationFailedAuthyError);
+          e.should.be.instanceOf(AuthyValidationFailedError);
           e.errors.authy_id.should.have.length(2);
           e.errors.authy_id[0].show().assert.should.equal('Required');
           e.errors.authy_id[1].show().assert.should.equal('GreaterThan');
@@ -550,7 +550,7 @@ describe('Client', function() {
 
           should.fail();
         } catch (e) {
-          e.should.be.instanceOf(ValidationFailedAuthyError);
+          e.should.be.instanceOf(AuthyValidationFailedError);
           e.errors.force.should.have.length(1);
           e.errors.force[0].show().assert.should.equal('Callback');
         }
@@ -566,7 +566,7 @@ describe('Client', function() {
         try {
           yield client.requestCall(1600);
         } catch (e) {
-          e.should.be.instanceOf(HttpAuthyError);
+          e.should.be.instanceOf(AuthyHttpError);
           e.message.should.equal('User not found.');
           e.body.should.not.be.empty;
         }
@@ -614,7 +614,7 @@ describe('Client', function() {
 
           should.fail();
         } catch (e) {
-          e.should.be.instanceOf(ValidationFailedAuthyError);
+          e.should.be.instanceOf(AuthyValidationFailedError);
           e.errors.authy_id.show().assert.should.equal('HaveProperty');
         }
       });
@@ -625,7 +625,7 @@ describe('Client', function() {
 
           should.fail();
         } catch (e) {
-          e.should.be.instanceOf(ValidationFailedAuthyError);
+          e.should.be.instanceOf(AuthyValidationFailedError);
           e.errors.authy_id.should.have.length(2);
           e.errors.authy_id[0].show().assert.should.equal('Required');
           e.errors.authy_id[1].show().assert.should.equal('GreaterThan');
@@ -648,7 +648,7 @@ describe('Client', function() {
 
           should.fail();
         } catch (e) {
-          e.should.be.instanceOf(ValidationFailedAuthyError);
+          e.should.be.instanceOf(AuthyValidationFailedError);
           e.errors.authy_id.show().assert.should.equal('HaveProperty');
         }
       });
@@ -659,7 +659,7 @@ describe('Client', function() {
 
           should.fail();
         } catch (e) {
-          e.should.be.instanceOf(ValidationFailedAuthyError);
+          e.should.be.instanceOf(AuthyValidationFailedError);
           e.errors.authy_id.should.have.length(2);
           e.errors.authy_id[0].show().assert.should.equal('Required');
           e.errors.authy_id[1].show().assert.should.equal('GreaterThan');
@@ -682,7 +682,7 @@ describe('Client', function() {
 
           should.fail();
         } catch (e) {
-          e.should.be.instanceOf(ValidationFailedAuthyError);
+          e.should.be.instanceOf(AuthyValidationFailedError);
           e.errors.authy_id.show().assert.should.equal('HaveProperty');
         }
       });
@@ -693,7 +693,7 @@ describe('Client', function() {
 
           should.fail();
         } catch (e) {
-          e.should.be.instanceOf(ValidationFailedAuthyError);
+          e.should.be.instanceOf(AuthyValidationFailedError);
           e.errors.authy_id.should.have.length(2);
           e.errors.authy_id[0].show().assert.should.equal('Required');
           e.errors.authy_id[1].show().assert.should.equal('GreaterThan');
@@ -707,7 +707,7 @@ describe('Client', function() {
 
         should.fail();
       } catch (e) {
-        e.should.be.instanceOf(ValidationFailedAuthyError);
+        e.should.be.instanceOf(AuthyValidationFailedError);
         e.errors.type.show().assert.should.equal('HaveProperty');
       }
     });
@@ -718,7 +718,7 @@ describe('Client', function() {
 
         should.fail();
       } catch (e) {
-        e.should.be.instanceOf(ValidationFailedAuthyError);
+        e.should.be.instanceOf(AuthyValidationFailedError);
         e.errors.type.should.have.length(1);
         e.errors.type[0].show().assert.should.equal('Choice');
       }
@@ -730,7 +730,7 @@ describe('Client', function() {
 
         should.fail();
       } catch (e) {
-        e.should.be.instanceOf(ValidationFailedAuthyError);
+        e.should.be.instanceOf(AuthyValidationFailedError);
         e.errors.ip.show().assert.should.equal('HaveProperty');
       }
     });
@@ -741,7 +741,7 @@ describe('Client', function() {
 
         should.fail();
       } catch (e) {
-        e.should.be.instanceOf(ValidationFailedAuthyError);
+        e.should.be.instanceOf(AuthyValidationFailedError);
         e.errors.ip.should.have.length(1);
         e.errors.ip[0].show().assert.should.equal('Callback');
       }
@@ -753,7 +753,7 @@ describe('Client', function() {
 
         should.fail();
       } catch (e) {
-        e.should.be.instanceOf(ValidationFailedAuthyError);
+        e.should.be.instanceOf(AuthyValidationFailedError);
         e.errors.data.show().assert.should.equal('HaveProperty');
       }
     });

@@ -33,21 +33,32 @@ var mockRequestCall = function mockRequestCall(statusCode, options) {
       errors: {
         message: 'User not found.'
       }
+    },
+    failureUserSuspended: {
+      success: false,
+      message: 'User has been suspended.',
+      errors: {
+        message: 'User has been suspended.'
+      }
     }
   };
 
   var response;
   switch (options.reason) {
-    case 'missing-cellphone':
-      response = responses.failureMissingCellphone;
+    case 'ignore-call':
+      response = responses.successCallIgnored;
       break;
 
     case 'invalid-authy-id':
       response = responses.failureInvalidAuthyId;
       break;
 
-    case 'ignore-call':
-      response = responses.successCallIgnored;
+    case 'missing-cellphone':
+      response = responses.failureMissingCellphone;
+      break;
+
+    case 'user-suspended':
+      response = responses.failureUserSuspended;
       break;
 
     default:
@@ -117,3 +128,10 @@ module.exports.failWithInvalidAuthyId = function(options) {
   return mockRequestCall(404, { reason: 'invalid-authy-id' }, options);
 };
 
+/**
+ * Expose a request that will `fail` due to the user being suspended.
+ */
+
+module.exports.failureUserSuspended = function(options) {
+  return mockRequestCall(503, { reason: 'user-suspended' }, options);
+};

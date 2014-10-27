@@ -12,6 +12,7 @@ var AuthyInvalidTokenError = require('../errors/authy-invalid-token-error');
 var AuthyInvalidTokenUsedRecentlyError = require('../errors/authy-invalid-token-used-recently-error');
 var AuthyServiceUnavailableError = require('../errors/authy-service-unavailable-error');
 var AuthyUnauthorizedAccessError = require('../errors/authy-unauthorized-access-error');
+var AuthyUserSuspendedError = require('../errors/authy-user-suspended-error');
 var parse = require('../lib/response');
 
 describe('Response', function() {
@@ -39,6 +40,18 @@ describe('Response', function() {
           parse({ body: body, statusCode: statusCode });
         } catch (e) {
           e.should.be.instanceOf(AuthyServiceUnavailableError);
+          e.message.should.equal(body.message);
+          e.body.should.equal(body);
+        }
+      });
+
+      it('should throw an `AuthyUserSuspendedError`', function() {
+        var body = { message: 'User has been suspended.' };
+
+        try {
+          parse({ body: body, statusCode: statusCode });
+        } catch (e) {
+          e.should.be.instanceOf(AuthyUserSuspendedError);
           e.message.should.equal(body.message);
           e.body.should.equal(body);
         }

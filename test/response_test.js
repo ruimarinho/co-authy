@@ -1,9 +1,7 @@
 
 /**
- * Test dependencies
+ * Module dependencies.
  */
-
-require('should');
 
 var AuthyHttpError = require('../errors/authy-unauthorized-access-error');
 var AuthyInvalidApiKeyError = require('../errors/authy-invalid-api-key-error');
@@ -15,8 +13,12 @@ var AuthyUnauthorizedAccessError = require('../errors/authy-unauthorized-access-
 var AuthyUserSuspendedError = require('../errors/authy-user-suspended-error');
 var parse = require('../lib/response');
 
+/**
+ * Test `Response`.
+ */
+
 describe('Response', function() {
-  describe('#parse', function() {
+  describe('parse()', function() {
     it('should support a string body', function() {
       var body = 'Requested URL was not found. Please check http://docs.authy.com/ to see the valid URLs';
       var statusCode = 401;
@@ -61,7 +63,7 @@ describe('Response', function() {
     describe('status code 401', function() {
       var statusCode = 401;
 
-      it('should throw an `AuthyInvalidTokenUsedRecentlyError` if token has been used recently', function() {
+      it('should throw an `AuthyInvalidTokenUsedRecentlyError` if verification token has been used recently', function() {
         var body = {
           message: 'Token is invalid. Token was used recently.',
           success: false,
@@ -92,13 +94,13 @@ describe('Response', function() {
         try {
           parse({ body: body, statusCode: statusCode });
         } catch (e) {
-          e.should.be.instanceOf(AuthyInvalidTokenError);
-          e.message.should.equal(body.message);
           e.body.should.equal(body);
+          e.message.should.equal(body.message);
+          e.should.be.instanceOf(AuthyInvalidTokenError);
         }
       });
 
-      it('should throw an `AuthyInvalidApiKeyError` if API key is invalid', function() {
+      it('should throw an `AuthyInvalidApiKeyError` if api key is invalid', function() {
         var body = {
           message: 'Invalid API key.',
           success: false,

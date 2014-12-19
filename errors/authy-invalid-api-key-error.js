@@ -12,6 +12,7 @@ var util = require('util');
 
 function AuthyInvalidApiKeyError(body) {
   AuthyUnauthorizedAccessError.call(this, body);
+
   Error.captureStackTrace(this, this.constructor);
 }
 
@@ -22,7 +23,7 @@ function AuthyInvalidApiKeyError(body) {
 util.inherits(AuthyInvalidApiKeyError, AuthyUnauthorizedAccessError);
 
 /**
- * Export constructor.
+ * Export `AuthyInvalidApiKeyError`.
  */
 
 module.exports = AuthyInvalidApiKeyError;

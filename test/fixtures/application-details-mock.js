@@ -44,7 +44,7 @@ function mockGetApplicationDetails(statusCode, options) {
 }
 
 /**
- * Expose a request that will `succeed`.
+ * Export a request that will `succeed`.
  */
 
 module.exports.succeed = function(options) {

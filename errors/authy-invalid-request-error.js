@@ -12,6 +12,7 @@ var util = require('util');
 
 function AuthyInvalidRequestError(body) {
   AuthyHttpError.call(this, 'Invalid request', body);
+
   Error.captureStackTrace(this, this.constructor);
 }
 
@@ -22,7 +23,7 @@ function AuthyInvalidRequestError(body) {
 util.inherits(AuthyInvalidRequestError, AuthyHttpError);
 
 /**
- * Export constructor.
+ * Export `AuthyInvalidRequestError`.
  */
 
 module.exports = AuthyInvalidRequestError;

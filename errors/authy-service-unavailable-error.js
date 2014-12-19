@@ -7,7 +7,7 @@ var AuthyHttpError = require('./authy-http-error');
 var util = require('util');
 
 /**
- * Service unavailable.
+ * Service unavailable error.
  *
  * Can happen due to many reasons, including:
  *
@@ -18,6 +18,7 @@ var util = require('util');
 
 function AuthyServiceUnavailableError(body) {
   AuthyHttpError.call(this, 'Service unavailable', body);
+
   Error.captureStackTrace(this, this.constructor);
 }
 
@@ -28,7 +29,7 @@ function AuthyServiceUnavailableError(body) {
 util.inherits(AuthyServiceUnavailableError, AuthyHttpError);
 
 /**
- * Export constructor.
+ * Export `AuthyServiceUnavailableError`.
  */
 
 module.exports = AuthyServiceUnavailableError;

@@ -7,7 +7,7 @@ var AuthyError = require('./authy-error');
 var util = require('util');
 
 /**
- * Invalid request error.
+ * Authy HTTP error.
  */
 
 function AuthyHttpError(message, body) {
@@ -26,6 +26,7 @@ function AuthyHttpError(message, body) {
   }
 
   AuthyError.call(this, message, attributes);
+
   Error.captureStackTrace(this, this.constructor);
 }
 
@@ -36,7 +37,7 @@ function AuthyHttpError(message, body) {
 util.inherits(AuthyHttpError, AuthyError);
 
 /**
- * Export constructor.
+ * Export `AuthyHttpError`.
  */
 
 module.exports = AuthyHttpError;

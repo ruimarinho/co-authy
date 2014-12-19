@@ -1,7 +1,7 @@
 /* jshint camelcase:false*/
 
 /**
- * Test dependencies.
+ * Module dependencies.
  */
 
 var AuthyClient = require('..');
@@ -17,8 +17,9 @@ var mocks = require('./mocks');
 var should = require('should');
 var sinon = require('sinon');
 
-describe('Client', function() {
-  var client;
+/**
+ * Test `Client`.
+ */
 
   beforeEach(function(){
     /* jshint newcap:false*/
@@ -399,7 +400,7 @@ describe('Client', function() {
       });
     });
 
-    it('should accept a `force` parameter', function *() {
+    it('should support a `force` parameter', function *() {
       mocks.verifyToken.succeedWithForce();
 
       yield client.verifyToken(1635, '1234567', { force: true });
@@ -499,13 +500,13 @@ describe('Client', function() {
       yield client.requestSms(1635);
     });
 
-    it('should accept a `force` parameter', function *() {
+    it('should support a `force` parameter', function *() {
       mocks.requestSms.succeedWithForce();
 
       yield client.requestSms(1635, { force: true });
     });
 
-    it('should accept a `shortcode` parameter', function *() {
+    it('should support a `shortcode` parameter', function *() {
       mocks.requestSms.succeedWithShortcode();
 
       yield client.requestSms(1635, { shortcode: true });
@@ -771,7 +772,7 @@ describe('Client', function() {
     });
   });
 
-  describe('#getApplicationDetails', function() {
+  describe('getApplicationDetails()', function() {
     it('should return the application details', function *() {
       mocks.applicationDetails.succeed();
 
@@ -779,7 +780,7 @@ describe('Client', function() {
     });
   });
 
-  describe('#getApplicationStatistics', function() {
+  describe('getApplicationStatistics()', function() {
     it('should return the application statistics', function *() {
       mocks.applicationStatistics.succeed();
 

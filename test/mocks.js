@@ -1,6 +1,6 @@
 
 /**
- * Module exports.
+ * Export mocks.
  */
 
 module.exports = {

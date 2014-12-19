@@ -7,7 +7,7 @@ var _ = require('lodash');
 var util = require('util');
 
 /**
- * Generic AuthyError error.
+ * Generic Authy error.
  */
 
 function AuthyError(message, attributes) {
@@ -33,7 +33,7 @@ function AuthyError(message, attributes) {
 util.inherits(AuthyError, Error);
 
 /**
- * Export constructor.
+ * Export `AuthyError`.
  */
 
 module.exports = AuthyError;

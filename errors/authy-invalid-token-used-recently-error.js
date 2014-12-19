@@ -12,6 +12,7 @@ var util = require('util');
 
 function AuthyInvalidTokenUsedRecentlyError(body) {
   AuthyInvalidTokenError.call(this, body);
+
   Error.captureStackTrace(this, this.constructor);
 }
 
@@ -22,7 +23,7 @@ function AuthyInvalidTokenUsedRecentlyError(body) {
 util.inherits(AuthyInvalidTokenUsedRecentlyError, AuthyInvalidTokenError);
 
 /**
- * Export constructor.
+ * Export `AuthyInvalidTokenUsedRecentlyError`.
  */
 
 module.exports = AuthyInvalidTokenUsedRecentlyError;

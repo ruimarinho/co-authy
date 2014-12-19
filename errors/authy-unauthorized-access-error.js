@@ -7,7 +7,7 @@ var AuthyHttpError = require('./authy-http-error');
 var util = require('util');
 
 /**
- * Unauthorized access error.
+ * `AuthyUnauthorizedAccessError`.
  *
  * Might be due to:
  *
@@ -23,7 +23,7 @@ function AuthyUnauthorizedAccessError(body) {
 }
 
 /**
- * Inherit prototype.
+ * Inherit from `AuthyHttpError`.
  */
 
 util.inherits(AuthyUnauthorizedAccessError, AuthyHttpError);

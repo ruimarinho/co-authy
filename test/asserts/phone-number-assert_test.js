@@ -1,19 +1,18 @@
 
 /**
- * Test dependencies.
+ * Module dependencies.
  */
-
 
 var Assert = require('validator.js').Assert;
 var Violation = require('validator.js').Violation;
-var assert = require('../../lib/validators/phone-number-validator');
+var assert = require('../../lib/asserts/phone-number-assert');
 var should = require('should');
 
 /**
- * Phone Number Validator tests.
+ * Test `PhoneNumberAssert`.
  */
 
-describe('Phone Number Validator', function() {
+describe('PhoneNumberAssert', function() {
   before(function() {
     Assert.prototype.PhoneNumber = assert;
   });

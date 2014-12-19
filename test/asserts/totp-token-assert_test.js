@@ -1,19 +1,19 @@
 
 /**
- * Test dependencies.
+ * Module dependencies.
  */
 
 require('should');
 
 var Assert = require('validator.js').Assert;
 var Violation = require('validator.js').Violation;
-var assert = require('../../lib/validators/totp-token-validator');
+var assert = require('../../lib/asserts/totp-token-assert');
 
 /**
- * TOTP Token Validator tests.
+ * Test `TotpTokenAssert`.
  */
 
-describe('TOTP Token Validator', function() {
+describe('TotpTokenAssert', function() {
   before(function() {
     Assert.prototype.TotpToken = assert;
   });

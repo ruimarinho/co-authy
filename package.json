@@ -33,11 +33,13 @@
   "dependencies": {
     "closure": "^1.0.3",
     "co-request": "^0.2.0",
-    "debug": "^1.0.2",
-    "google-libphonenumber": "^0.0.4",
+    "debug": "^2.1.0",
+    "google-libphonenumber": "^0.1.1",
     "lodash": "^2.4.1",
     "sf": "^0.1.7",
+    "to-snake-case": "^0.1.2",
     "validator.js": "^1.0.0",
+    "validator.js-asserts": "0.0.3",
     "world-countries": "^1.5.0"
   },
   "devDependencies": {

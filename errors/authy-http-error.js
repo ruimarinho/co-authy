@@ -7,7 +7,7 @@ var AuthyError = require('./authy-error');
 var util = require('util');
 
 /**
- * Authy HTTP error.
+ * `AuthyHttpError`.
  */
 
 function AuthyHttpError(message, body) {
@@ -31,7 +31,7 @@ function AuthyHttpError(message, body) {
 }
 
 /**
- * Inherit prototype.
+ * Inherit from `AuthyError`.
  */
 
 util.inherits(AuthyHttpError, AuthyError);

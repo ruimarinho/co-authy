@@ -17,7 +17,7 @@ function AuthyInvalidTokenError(body) {
 }
 
 /**
- * Inherit prototype.
+ * Inherit from `AuthyUnauthorizedAccessError`.
  */
 
 util.inherits(AuthyInvalidTokenError, AuthyUnauthorizedAccessError);

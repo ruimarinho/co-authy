@@ -10,8 +10,8 @@ var util = require('util');
  * User suspended error.
  */
 
-function AuthyUserSuspendedError(body) {
-  AuthyHttpError.call(this, 'User suspended', body);
+function AuthyUserNotFoundError(body) {
+  AuthyHttpError.call(this, 'User not found', body);
 
   Error.captureStackTrace(this, this.constructor);
 }
@@ -20,10 +20,10 @@ function AuthyUserSuspendedError(body) {
  * Inherit from `AuthyHttpError`.
  */
 
-util.inherits(AuthyUserSuspendedError, AuthyHttpError);
+util.inherits(AuthyUserNotFoundError, AuthyHttpError);
 
 /**
- * Export `AuthyUserSuspendedError`.
+ * Export `AuthyUserNotFoundError`.
  */
 
-module.exports = AuthyUserSuspendedError;
+module.exports = AuthyUserNotFoundError;

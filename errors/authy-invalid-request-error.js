@@ -7,7 +7,7 @@ var AuthyHttpError = require('./authy-http-error');
 var util = require('util');
 
 /**
- * Invalid request error.
+ * `AuthyInvalidRequestError`.
  */
 
 function AuthyInvalidRequestError(body) {
@@ -17,7 +17,7 @@ function AuthyInvalidRequestError(body) {
 }
 
 /**
- * Inherit prototype.
+ * Inherit from `AuthyHttpError`.
  */
 
 util.inherits(AuthyInvalidRequestError, AuthyHttpError);

@@ -13,13 +13,14 @@ function mockDeleteUser(statusCode, options) {
   statusCode = statusCode || 200;
   options = options || {};
 
+  /* jshint camelcase: false */
   var responses = {
     success: {
-      success: true,
-      message: 'User was added to remove.'
-    },
-    failure: {}
+      message: 'User was added to remove.',
+      success: true
+    }
   };
+  /* jshint camelcase: true */
 
   var response = 200 === statusCode ? responses.success : responses.failure;
 

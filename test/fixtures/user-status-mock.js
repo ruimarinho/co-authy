@@ -5,28 +5,32 @@
 
 var nock = require('nock');
 
+/**
+ * Mock a GET request to retrieve an user status.
+ */
+
 var mockGetUserStatus = function mockGetUserStatus(statusCode, options) {
-  /* jshint camelcase:false*/
   statusCode = statusCode || 200;
   options = options || {};
 
-  var replies = {
+  /* jshint camelcase: false */
+  var responses = {
     success: {
       success: true,
       message: 'User status.',
       status: {
         authy_id: 1635,
         confirmed: true,
-        registered: false,
         country_code: 351,
+        devices: ['iphone', 'ipad'],
         phone_number: 'XX-XXX-4567',
-        devices: []
+        registered: false
       }
-    },
-    failure: {}
+    }
   };
+  /* jshint camelcase: true */
 
-  var reply = 200 === statusCode ? replies.success : replies.failure;
+  var reply = 200 === statusCode ? responses.success : responses.failure;
 
   return nock('http://sandbox-api.authy.com')
     .filteringPath(function(path) {
@@ -44,7 +48,7 @@ var mockGetUserStatus = function mockGetUserStatus(statusCode, options) {
 };
 
 /**
- * Expose a request that will `succeed`.
+ * Export a request that will `succeed`.
  */
 
 module.exports.succeed = function(options) {

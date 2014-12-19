@@ -26,10 +26,23 @@ describe('Response', function() {
       try {
         parse({ body: body, statusCode: statusCode });
       } catch (e) {
-        e.should.be.instanceOf(AuthyUnauthorizedAccessError);
-        e.message.should.equal('Unauthorized access');
         e.body.should.equal(body);
+        e.message.should.equal('Unauthorized access');
+        e.should.be.instanceOf(AuthyUnauthorizedAccessError);
       }
+    });
+
+    it('should fallback to an `HttpError` if no special error is thrown', function() {
+        var statusCode = 200;
+        var body = 'Foo';
+
+        try {
+          parse({ body: body, statusCode: statusCode });
+        } catch (e) {
+          e.body.should.equal(body);
+          e.message.should.equal(body);
+          e.should.be.instanceOf(AuthyHttpError);
+        }
     });
 
     describe('status code 503', function() {
@@ -41,9 +54,9 @@ describe('Response', function() {
         try {
           parse({ body: body, statusCode: statusCode });
         } catch (e) {
-          e.should.be.instanceOf(AuthyServiceUnavailableError);
-          e.message.should.equal(body.message);
           e.body.should.equal(body);
+          e.message.should.equal(body.message);
+          e.should.be.instanceOf(AuthyServiceUnavailableError);
         }
       });
 
@@ -53,9 +66,9 @@ describe('Response', function() {
         try {
           parse({ body: body, statusCode: statusCode });
         } catch (e) {
-          e.should.be.instanceOf(AuthyUserSuspendedError);
-          e.message.should.equal(body.message);
           e.body.should.equal(body);
+          e.message.should.equal(body.message);
+          e.should.be.instanceOf(AuthyUserSuspendedError);
         }
       });
     });
@@ -75,9 +88,9 @@ describe('Response', function() {
         try {
           parse({ body: body, statusCode: statusCode });
         } catch (e) {
-          e.should.be.instanceOf(AuthyInvalidTokenUsedRecentlyError);
-          e.message.should.equal(body.message);
           e.body.should.equal(body);
+          e.message.should.equal(body.message);
+          e.should.be.instanceOf(AuthyInvalidTokenUsedRecentlyError);
         }
       });
 
@@ -112,27 +125,27 @@ describe('Response', function() {
         try {
           parse({ body: body, statusCode: statusCode });
         } catch (e) {
-          e.should.be.instanceOf(AuthyInvalidApiKeyError);
-          e.message.should.equal(body.message);
           e.body.should.equal(body);
+          e.message.should.equal(body.message);
+          e.should.be.instanceOf(AuthyInvalidApiKeyError);
         }
       });
 
       it('should throw an `AuthyUnauthorizedAccessError` as a fallback', function() {
         var body = {
-          message: 'A specially unknown message.',
-          success: false,
           errors: {
             message: 'A specially unknown message.'
-          }
+          },
+          message: 'A specially unknown message.',
+          success: false
         };
 
         try {
           parse({ body: body, statusCode: statusCode });
         } catch (e) {
-          e.should.be.instanceOf(AuthyUnauthorizedAccessError);
-          e.message.should.equal(body.message);
           e.body.should.equal(body);
+          e.message.should.equal(body.message);
+          e.should.be.instanceOf(AuthyUnauthorizedAccessError);
         }
       });
     });
@@ -142,36 +155,23 @@ describe('Response', function() {
 
       it('should throw an `AuthyInvalidRequestError`', function() {
         var body =  {
-          message: 'User was not valid.',
           email: 'is invalid and can\'t be blank',
-          success: false,
           errors: {
             message: 'User was not valid.',
             email: 'is invalid and can\'t be blank'
-          }
+          },
+          message: 'User was not valid.',
+          success: false
         };
 
         try {
           parse({ body: body, statusCode: statusCode });
         } catch (e) {
-          e.should.be.instanceOf(AuthyInvalidRequestError);
-          e.message.should.equal(body.message);
           e.body.should.equal(body);
+          e.message.should.equal(body.message);
+          e.should.be.instanceOf(AuthyInvalidRequestError);
         }
       });
-    });
-
-    it('should fallback to an `HttpError` if no special error is thrown', function() {
-        var statusCode = 502;
-        var body = 'Bad gateway';
-
-        try {
-          parse({ body: body, statusCode: statusCode });
-        } catch (e) {
-          e.should.be.instanceOf(AuthyHttpError);
-          e.message.should.equal(body);
-          e.body.should.equal(body);
-        }
     });
   });
 });

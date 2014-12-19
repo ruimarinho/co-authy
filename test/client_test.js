@@ -1,4 +1,3 @@
-/* jshint camelcase:false*/
 
 /**
  * Module dependencies.
@@ -11,6 +10,7 @@ var AuthyInvalidApiKeyError = require('../errors/authy-invalid-api-key-error');
 var AuthyInvalidRequestError = require('../errors/authy-invalid-request-error');
 var AuthyInvalidTokenError = require('../errors/authy-invalid-token-error');
 var AuthyInvalidTokenUsedRecentlyError = require('../errors/authy-invalid-token-used-recently-error');
+var AuthyUserNotFoundError = require('../errors/authy-user-not-found-error');
 var AuthyValidationFailedError = require('../errors/authy-validation-failed-error');
 var Validator = require('validator.js').Validator;
 var mocks = require('./mocks');
@@ -21,45 +21,69 @@ var sinon = require('sinon');
  * Test `Client`.
  */
 
-  beforeEach(function(){
-    /* jshint newcap:false*/
-    client = AuthyClient(process.env.AUTHY_KEY || 'fooqux', { host: 'http://sandbox-api.authy.com' });
-  });
+describe('Client', function() {
+  var client = new AuthyClient(process.env.AUTHY_KEY || 'fooqux', { host: 'http://sandbox-api.authy.com' });
 
-  it('should throw an error if `apiKey` is missing', function() {
+  it('should throw an error if api `key` is missing', function() {
     try {
       new AuthyClient(undefined, { host: 'http://sandbox-api.authy.com' });
+
+      should.fail();
     } catch (e) {
       e.should.be.instanceOf(AuthyValidationFailedError);
-      e.errors.api_key.show().assert.should.equal('HaveProperty');
+      e.errors.key.show().assert.should.equal('HaveProperty');
     }
   });
 
   it('should not require the `new` keyword', function() {
-    client.should.be.instanceOf(AuthyClient);
+    /* jshint newcap: false */
+    var testClient = AuthyClient('foo');
+    /* jshint newcap: true */
+
+    testClient.should.be.instanceOf(AuthyClient);
   });
 
-  it('should set default options', function() {
-    var c = new AuthyClient('foo');
-    c.apiKey.should.equal('foo');
-    c.apiUrl.should.equal('https://api.authy.com');
+  it('should set defaults', function() {
+    var testClient = new AuthyClient('foo');
+
+    /* jshint camelcase: false */
+    testClient.qs().api_key.should.equal('foo');
+    /* jshint camelcase: true */
+
+    testClient.url('bar').should.equal('https://api.authy.com/protected/json/bar');
   });
 
-  describe('#registerUser', function() {
-    it('should throw an error if the api `key` is invalid', function *() {
-      mocks.registerUser.failWithInvalidApiKey();
+  describe('registerUser()', function() {
+    it('should throw an error if api `key` is invalid', function *() {
+      mocks.registerUser.failWithApiKeyInvalid();
 
-      var c = new AuthyClient('foo', { host: 'http://sandbox-api.authy.com' });
+      var testClient = new AuthyClient('foo', { host: 'http://sandbox-api.authy.com' });
 
       try {
-        yield c.registerUser('foo@bar.com', '408-550-3542');
+        yield testClient.registerUser('foo@bar.com', '408-550-3542');
+
+        should.fail();
       } catch (e) {
         e.should.be.instanceOf(AuthyInvalidApiKeyError);
         e.message.should.equal('Invalid API key.');
       }
     });
 
-    it('should support `country_code` in the ISO 3166-1 alpha-2 format', function *() {
+    it('should throw an error if `user.id` is not returned', function *() {
+      mocks.registerUser.succeedWithMissingUserId();
+
+      try {
+        yield client.registerUser('foo@bar.com', '911234567', '351');
+
+        should.fail();
+      } catch (e) {
+        e.should.be.instanceOf(AuthyError);
+        e.message.should.equal('`user.id` is missing');
+        e.body.should.not.be.empty;
+      }
+    });
+
+    it('should support `countryCode` in the ISO 3166-1 alpha-2 format', function *() {
       mocks.registerUser.succeed({
         matchBody: {
           'user[email]': 'foo@bar.com',
@@ -71,19 +95,25 @@ var sinon = require('sinon');
       yield client.registerUser('foo@bar.com', '911234567', 'PT');
     });
 
-    it('should support the special International Networks `country_code` (+882)', function *() {
+    it('should support `countryCode` in the special International Networks (+882)', function *() {
       mocks.registerUser.succeed();
 
       yield client.registerUser('foo@bar.com', '13300655', '882');
     });
 
-    it('should support the special International Networks `country_code` (+883)', function *() {
+    it('should support `countryCode` in the special International Networks (+883)', function *() {
       mocks.registerUser.succeed();
 
       yield client.registerUser('foo@bar.com', '510012345', '883');
     });
 
-    it('should default the `country_code` to USA (+1) if it is missing', function *() {
+    it('should support `countryCode` assigned to multiple countries', function *() {
+      mocks.registerUser.succeed();
+
+      (yield client.registerUser('foo@bar.com', '408-550-3542', '1')).user.id.should.equal(1635);
+    });
+
+    it('should default `countryCode` to USA (+1) if missing', function *() {
       mocks.registerUser.succeed({
         matchBody: {
           'user[email]': 'foo@bar.com',
@@ -95,25 +125,7 @@ var sinon = require('sinon');
       yield client.registerUser('foo@bar.com', '562 756--2233');
     });
 
-    it('should throw an error if the authy user `id` is not returned', function *() {
-      mocks.registerUser.succeedWithMissingUserId();
-
-      try {
-        yield client.registerUser('foo@bar.com', '911234567', '351');
-      } catch (e) {
-        e.should.be.instanceOf(AuthyError);
-        e.message.should.equal('`user.id` is missing');
-        e.body.should.not.be.empty;
-      }
-    });
-
-    it('should accept a `country_code` assigned to multiple countries', function *() {
-      mocks.registerUser.succeed();
-
-      (yield client.registerUser('foo@bar.com', '408-550-3542', '1')).user.id.should.equal(1635);
-    });
-
-    it('should send a properly formatted e164 version', function *() {
+    it('should send `cellphone` in the e164 format', function *() {
       var numbers = [
         [['15515025000', 'MX'], ['15515025000', '52']],
         [['044 55 1502-5000', 'MX'], ['15515025000', '52']],
@@ -197,15 +209,15 @@ var sinon = require('sinon');
         }
       });
 
-      it('should throw an error if `country_code` is not supported', function *() {
+      it('should throw an error if `countryCode` is not supported', function *() {
         try {
           yield client.registerUser('foo@bar.com', '123456789', '12345');
 
           should.fail();
         } catch (e) {
           e.should.be.instanceOf(AuthyValidationFailedError);
-          e.errors.country_code.should.have.length(1);
-          e.errors.country_code[0].show().assert.should.equal('CountryCallingCode');
+          e.errors.countryCode.should.have.length(1);
+          e.errors.countryCode[0].show().assert.should.equal('CountryCallingCode');
         }
       });
     });
@@ -214,7 +226,7 @@ var sinon = require('sinon');
       it('should throw an error if `email` is missing', function *() {
         sinon.stub(Validator.prototype, 'validate', function() { return true; });
 
-        mocks.registerUser.failWithInvalidRequest({ email: 'invalid-blank' });
+        mocks.registerUser.failWithRequestInvalid({ errors: { email: 'invalid-blank' } });
 
         try {
           yield client.registerUser('', '123456789', '351');
@@ -232,7 +244,7 @@ var sinon = require('sinon');
       it('should throw an error if `email` is invalid', function *() {
         sinon.stub(Validator.prototype, 'validate', function() { return true; });
 
-        mocks.registerUser.failWithInvalidRequest({ email: 'invalid' });
+        mocks.registerUser.failWithRequestInvalid({ errors: { email: 'invalid' } });
 
         try {
           yield client.registerUser('foo', '123456789', '351');
@@ -250,7 +262,7 @@ var sinon = require('sinon');
       it('should throw an error if `cellphone` is missing', function *() {
         sinon.stub(Validator.prototype, 'validate', function() { return true; });
 
-        mocks.registerUser.failWithInvalidRequest({ cellphone: 'invalid' });
+        mocks.registerUser.failWithRequestInvalid({ errors: { cellphone: 'invalid' } });
 
         try {
           yield client.registerUser('foo@bar.com', '', '351');
@@ -268,7 +280,7 @@ var sinon = require('sinon');
       it('should throw an error if `cellphone` is invalid', function *() {
         sinon.stub(Validator.prototype, 'validate', function() { return true; });
 
-        mocks.registerUser.failWithInvalidRequest({ cellphone: 'invalid' });
+        mocks.registerUser.failWithRequestInvalid({ errors: { cellphone: 'invalid' } });
 
         try {
           yield client.registerUser('foo@bar.com', 'FOO', '351');
@@ -283,10 +295,10 @@ var sinon = require('sinon');
         Validator.prototype.validate.restore();
       });
 
-      it('should throw an error if `country_code` is not supported', function *() {
+      it('should throw an error if `countryCode` is not supported', function *() {
         sinon.stub(Validator.prototype, 'validate', function() { return true; });
 
-        mocks.registerUser.failWithInvalidRequest({ country_code: 'unsupported' });
+        mocks.registerUser.failWithRequestInvalid({ errors: { countryCode: 'unsupported' } });
 
         try {
           yield client.registerUser('foo@bar.com', '123456789', '12345');
@@ -295,7 +307,7 @@ var sinon = require('sinon');
         } catch (e) {
           e.should.be.instanceOf(AuthyInvalidRequestError);
           e.message.should.equal('User was not valid.');
-          e.errors.should.eql({ message: 'User was not valid.', country_code: 'is not supported' });
+          e.errors.should.eql({ message: 'User was not valid.', countryCode: 'is not supported' });
         }
 
         Validator.prototype.validate.restore();
@@ -303,29 +315,29 @@ var sinon = require('sinon');
     });
   });
 
-  describe('#verifyToken', function() {
+  describe('verifyToken()', function() {
     describe('client validation', function() {
-      it('should throw an error if `authy_id` is missing', function *() {
+      it('should throw an error if `authyId` is missing', function *() {
         try {
           yield client.verifyToken(undefined, 'foobar');
 
           should.fail();
         } catch (e) {
           e.should.be.instanceOf(AuthyValidationFailedError);
-          e.errors.authy_id.show().assert.should.equal('HaveProperty');
+          e.errors.authyId.show().assert.should.equal('HaveProperty');
         }
       });
 
-      it('should throw an error if `authy_id` is invalid', function *() {
+      it('should throw an error if `authyId` is invalid', function *() {
         try {
           yield client.verifyToken('', 'foobar');
 
           should.fail();
         } catch (e) {
           e.should.be.instanceOf(AuthyValidationFailedError);
-          e.errors.authy_id.should.have.length(2);
-          e.errors.authy_id[0].show().assert.should.equal('Required');
-          e.errors.authy_id[1].show().assert.should.equal('GreaterThan');
+          e.errors.authyId.should.have.length(2);
+          e.errors.authyId[0].show().assert.should.equal('Required');
+          e.errors.authyId[1].show().assert.should.equal('GreaterThan');
         }
       });
 
@@ -361,7 +373,7 @@ var sinon = require('sinon');
         } catch (e) {
           e.should.be.instanceOf(AuthyValidationFailedError);
           e.errors.force.should.have.length(1);
-          e.errors.force[0].show().assert.should.equal('Callback');
+          e.errors.force[0].show().assert.should.equal('Boolean');
         }
       });
     });
@@ -413,29 +425,29 @@ var sinon = require('sinon');
     });
   });
 
-  describe('#requestSms', function() {
+  describe('requestSms()', function() {
     describe('client validation', function() {
-      it('should throw an error if `authy_id` is missing', function *() {
+      it('should throw an error if `authyId` is missing', function *() {
         try {
           yield client.requestSms(undefined, 'foobar');
 
           should.fail();
         } catch (e) {
           e.should.be.instanceOf(AuthyValidationFailedError);
-          e.errors.authy_id.show().assert.should.equal('HaveProperty');
+          e.errors.authyId.show().assert.should.equal('HaveProperty');
         }
       });
 
-      it('should throw an error if `authy_id` is invalid', function *() {
+      it('should throw an error if `authyId` is invalid', function *() {
         try {
           yield client.requestSms('', 'foobar');
 
           should.fail();
         } catch (e) {
           e.should.be.instanceOf(AuthyValidationFailedError);
-          e.errors.authy_id.should.have.length(2);
-          e.errors.authy_id[0].show().assert.should.equal('Required');
-          e.errors.authy_id[1].show().assert.should.equal('GreaterThan');
+          e.errors.authyId.should.have.length(2);
+          e.errors.authyId[0].show().assert.should.equal('Required');
+          e.errors.authyId[1].show().assert.should.equal('GreaterThan');
         }
       });
 
@@ -447,7 +459,7 @@ var sinon = require('sinon');
         } catch (e) {
           e.should.be.instanceOf(AuthyValidationFailedError);
           e.errors.force.should.have.length(1);
-          e.errors.force[0].show().assert.should.equal('Callback');
+          e.errors.force[0].show().assert.should.equal('Boolean');
         }
       });
 
@@ -459,16 +471,16 @@ var sinon = require('sinon');
         } catch (e) {
           e.should.be.instanceOf(AuthyValidationFailedError);
           e.errors.shortcode.should.have.length(1);
-          e.errors.shortcode[0].show().assert.should.equal('Callback');
+          e.errors.shortcode[0].show().assert.should.equal('Boolean');
         }
       });
     });
 
     describe('remote validation', function() {
-      it('should throw an error if the `authy_id` is invalid ', function *() {
+      it('should throw an error if the `authyId` is invalid', function *() {
         sinon.stub(Validator.prototype, 'validate', function() { return true; });
 
-        mocks.requestSms.failWithInvalidAuthyId();
+        mocks.requestSms.failWithAuthyIdNotFound();
 
         try {
           yield client.requestSms(1600);
@@ -483,10 +495,12 @@ var sinon = require('sinon');
     });
 
     it('should throw an error if a `cellphone` is not returned', function *() {
-      mocks.requestSms.succeedWithMissingCellphone();
+      mocks.requestSms.succeedWithCellphoneMissing();
 
       try {
         yield client.requestSms(1635);
+
+        should.fail();
       } catch (e) {
         e.should.be.instanceOf(AuthyError);
         e.message.should.equal('`cellphone` is missing');
@@ -495,7 +509,7 @@ var sinon = require('sinon');
     });
 
     it('should not throw an error if SMS request has been ignored', function *() {
-      mocks.requestSms.succeedWithIgnoredSms();
+      mocks.requestSms.succeedWithSmsIgnored();
 
       yield client.requestSms(1635);
     });
@@ -519,29 +533,29 @@ var sinon = require('sinon');
     });
   });
 
-  describe('#requestCall', function() {
+  describe('requestCall()', function() {
     describe('client validation', function() {
-      it('should throw an error if `authy_id` is missing', function *() {
+      it('should throw an error if `authyId` is missing', function *() {
         try {
           yield client.requestCall(undefined, 'foobar');
 
           should.fail();
         } catch (e) {
           e.should.be.instanceOf(AuthyValidationFailedError);
-          e.errors.authy_id.show().assert.should.equal('HaveProperty');
+          e.errors.authyId.show().assert.should.equal('HaveProperty');
         }
       });
 
-      it('should throw an error if `authy_id` is invalid', function *() {
+      it('should throw an error if `authyId` is invalid', function *() {
         try {
           yield client.requestCall('', 'foobar');
 
           should.fail();
         } catch (e) {
           e.should.be.instanceOf(AuthyValidationFailedError);
-          e.errors.authy_id.should.have.length(2);
-          e.errors.authy_id[0].show().assert.should.equal('Required');
-          e.errors.authy_id[1].show().assert.should.equal('GreaterThan');
+          e.errors.authyId.should.have.length(2);
+          e.errors.authyId[0].show().assert.should.equal('Required');
+          e.errors.authyId[1].show().assert.should.equal('GreaterThan');
         }
       });
 
@@ -553,21 +567,23 @@ var sinon = require('sinon');
         } catch (e) {
           e.should.be.instanceOf(AuthyValidationFailedError);
           e.errors.force.should.have.length(1);
-          e.errors.force[0].show().assert.should.equal('Callback');
+          e.errors.force[0].show().assert.should.equal('Boolean');
         }
       });
     });
 
     describe('remote validation', function() {
-      it('should throw an error if the `authy_id` is invalid ', function *() {
+      it('should throw an error if the `authyId` is invalid', function *() {
         sinon.stub(Validator.prototype, 'validate', function() { return true; });
 
-        mocks.requestCall.failWithInvalidAuthyId();
+        mocks.requestCall.failWithAuthyIdNotFound();
 
         try {
           yield client.requestCall(1600);
+
+          should.fail();
         } catch (e) {
-          e.should.be.instanceOf(AuthyHttpError);
+          e.should.be.instanceOf(AuthyUserNotFoundError);
           e.message.should.equal('User not found.');
           e.body.should.not.be.empty;
         }
@@ -577,10 +593,12 @@ var sinon = require('sinon');
     });
 
     it('should throw an error if a `cellphone` is not returned', function *() {
-      mocks.requestCall.succeedWithMissingCellphone();
+      mocks.requestCall.succeedWithCellphoneMissing();
 
       try {
         yield client.requestCall(1635);
+
+        should.fail();
       } catch (e) {
         e.should.be.instanceOf(AuthyError);
         e.message.should.equal('`cellphone` is missing');
@@ -589,12 +607,12 @@ var sinon = require('sinon');
     });
 
     it('should not throw an error if call request has been ignored', function *() {
-      mocks.requestCall.succeedWithIgnoredCall();
+      mocks.requestCall.succeedWithCallIgnored();
 
       yield client.requestCall(1635);
     });
 
-    it('should accept a `force` parameter', function *() {
+    it('should support a `force` parameter', function *() {
       mocks.requestCall.succeedWithForce();
 
       yield client.requestCall(1635, { force: true });
@@ -607,29 +625,29 @@ var sinon = require('sinon');
     });
   });
 
-  describe('#deleteUser', function() {
+  describe('deleteUser()', function() {
     describe('client validation', function() {
-      it('should throw an error if `authy_id` is missing', function *() {
+      it('should throw an error if `authyId` is missing', function *() {
         try {
           yield client.deleteUser(undefined);
 
           should.fail();
         } catch (e) {
           e.should.be.instanceOf(AuthyValidationFailedError);
-          e.errors.authy_id.show().assert.should.equal('HaveProperty');
+          e.errors.authyId.show().assert.should.equal('HaveProperty');
         }
       });
 
-      it('should throw an error if `authy_id` is invalid', function *() {
+      it('should throw an error if `authyId` is invalid', function *() {
         try {
           yield client.deleteUser('');
 
           should.fail();
         } catch (e) {
           e.should.be.instanceOf(AuthyValidationFailedError);
-          e.errors.authy_id.should.have.length(2);
-          e.errors.authy_id[0].show().assert.should.equal('Required');
-          e.errors.authy_id[1].show().assert.should.equal('GreaterThan');
+          e.errors.authyId.should.have.length(2);
+          e.errors.authyId[0].show().assert.should.equal('Required');
+          e.errors.authyId[1].show().assert.should.equal('GreaterThan');
         }
       });
     });
@@ -641,29 +659,29 @@ var sinon = require('sinon');
     });
   });
 
-  describe('#getUserStatus', function() {
+  describe('getUserStatus()', function() {
     describe('client validation', function() {
-      it('should throw an error if `authy_id` is missing', function *() {
+      it('should throw an error if `authyId` is missing', function *() {
         try {
           yield client.getUserStatus(undefined);
 
           should.fail();
         } catch (e) {
           e.should.be.instanceOf(AuthyValidationFailedError);
-          e.errors.authy_id.show().assert.should.equal('HaveProperty');
+          e.errors.authyId.show().assert.should.equal('HaveProperty');
         }
       });
 
-      it('should throw an error if `authy_id` is invalid', function *() {
+      it('should throw an error if `authyId` is invalid', function *() {
         try {
           yield client.getUserStatus('');
 
           should.fail();
         } catch (e) {
           e.should.be.instanceOf(AuthyValidationFailedError);
-          e.errors.authy_id.should.have.length(2);
-          e.errors.authy_id[0].show().assert.should.equal('Required');
-          e.errors.authy_id[1].show().assert.should.equal('GreaterThan');
+          e.errors.authyId.should.have.length(2);
+          e.errors.authyId[0].show().assert.should.equal('Required');
+          e.errors.authyId[1].show().assert.should.equal('GreaterThan');
         }
       });
     });
@@ -675,29 +693,29 @@ var sinon = require('sinon');
     });
   });
 
-  describe('#registerActivity', function() {
+  describe('registerActivity()', function() {
     describe('client validation', function() {
-      it('should throw an error if `authy_id` is missing', function *() {
+      it('should throw an error if `authyId` is missing', function *() {
         try {
           yield client.registerActivity(undefined, 'banned', '86.112.56.34', { reason: 'foo' });
 
           should.fail();
         } catch (e) {
           e.should.be.instanceOf(AuthyValidationFailedError);
-          e.errors.authy_id.show().assert.should.equal('HaveProperty');
+          e.errors.authyId.show().assert.should.equal('HaveProperty');
         }
       });
 
-      it('should throw an error if `authy_id` is invalid', function *() {
+      it('should throw an error if `authyId` is invalid', function *() {
         try {
           yield client.requestCall('', 'foobar');
 
           should.fail();
         } catch (e) {
           e.should.be.instanceOf(AuthyValidationFailedError);
-          e.errors.authy_id.should.have.length(2);
-          e.errors.authy_id[0].show().assert.should.equal('Required');
-          e.errors.authy_id[1].show().assert.should.equal('GreaterThan');
+          e.errors.authyId.should.have.length(2);
+          e.errors.authyId[0].show().assert.should.equal('Required');
+          e.errors.authyId[1].show().assert.should.equal('GreaterThan');
         }
       });
     });
@@ -721,7 +739,7 @@ var sinon = require('sinon');
       } catch (e) {
         e.should.be.instanceOf(AuthyValidationFailedError);
         e.errors.type.should.have.length(1);
-        e.errors.type[0].show().assert.should.equal('Choice');
+        e.errors.type[0].show().assert.should.equal('Activity');
       }
     });
 
@@ -744,7 +762,7 @@ var sinon = require('sinon');
       } catch (e) {
         e.should.be.instanceOf(AuthyValidationFailedError);
         e.errors.ip.should.have.length(1);
-        e.errors.ip[0].show().assert.should.equal('Callback');
+        e.errors.ip[0].show().assert.should.equal('Ip');
       }
     });
 
@@ -762,9 +780,9 @@ var sinon = require('sinon');
     it('should register the activity', function *() {
       mocks.registerActivity.succeed({
         matchBody: {
+          'data[reason]': 'foo',
           'ip': '86.112.56.34',
-          'type': 'banned',
-          'data[reason]': 'foo'
+          'type': 'banned'
         }
       });
 

@@ -7,7 +7,7 @@ var AuthyError = require('./authy-error');
 var util = require('util');
 
 /**
- * Validation failed error.
+ * `AuthyValidationFailedError`.
  */
 
 function AuthyValidationFailedError(errors) {
@@ -17,7 +17,7 @@ function AuthyValidationFailedError(errors) {
 }
 
 /**
- * Inherit prototype.
+ * Inherit from `AuthyError`.
  */
 
 util.inherits(AuthyValidationFailedError, AuthyError);

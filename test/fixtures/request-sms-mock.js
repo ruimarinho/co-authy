@@ -3,55 +3,62 @@
  * Module dependencies.
  */
 
+var _ = require('lodash');
 var nock = require('nock');
+
+/**
+ * Mock a GET request to request an SMS.
+ */
 
 var mockRequestSms = function mockRequestSms(statusCode, options) {
   statusCode = statusCode || 200;
   options = options || {};
 
-  var replies = {
+  /* jshint camelcase: false */
+  var responses = {
+    failureAuthyIdNotFound: {
+      errors: {
+        message: 'User not found.'
+      },
+      message: 'User not found.',
+      success: false,
+    },
     success: {
-      success: true,
       cellphone: '+351-XXX-XXX-XX67',
-      message: 'SMS sent.'
+      message: 'SMS token was sent',
+      success: true
+    },
+    successMissingCellphone: {
+      message: 'An error ocurred while sending the SMS',
+      success: true
     },
     successSmsIgnored: {
-      message: 'Ignored: SMS is not needed for smartphones. Pass force=true if you want to actually send it anyway.',
       cellphone: '+351-XXX-XXX-XX67',
       device: 'iphone',
       ignored: true,
+      message: 'Ignored: SMS is not needed for smartphones. Pass force=true if you want to actually send it anyway.',
       success: true
-    },
-    failure: {},
-    failureMissingCellphone: {
-      success: true,
-      message: 'An error ocurred while sending the SMS'
-    },
-    failureInvalidAuthyId: {
-      message: 'User not found.',
-      success: false,
-      errors: {
-        message: 'User not found.'
-      }
     }
   };
+  /* jshint camelcase: true */
 
-  var reply;
+  var response;
+
   switch (options.reason) {
-    case 'missing-cellphone':
-      reply = replies.failureMissingCellphone;
+    case 'failure-authy-id-not-found':
+      response = responses.failureAuthyIdNotFound;
       break;
 
-    case 'invalid-authy-id':
-      reply = replies.failureInvalidAuthyId;
+    case 'success-cellphone-missing':
+      response = responses.successMissingCellphone;
       break;
 
-    case 'ignore-sms':
-      reply = replies.successSmsIgnored;
+    case 'success-sms-ignored':
+      response = responses.successSmsIgnored;
       break;
 
     default:
-      reply = 200 === statusCode ? replies.success : replies.failure;
+      response = 200 === statusCode ? responses.success : responses.failure;
   }
 
   return nock('http://sandbox-api.authy.com')
@@ -76,11 +83,19 @@ var mockRequestSms = function mockRequestSms(statusCode, options) {
       return path;
     })
     .get('/protected/json/sms/{authyId}?api_key={apiKey}', options.matchBody)
-    .reply(statusCode, reply);
+    .reply(statusCode, response);
 };
 
 /**
- * Expose a request that will `succeed`.
+ * Export a request that will `fail` due to an non-existing authy id.
+ */
+
+module.exports.failWithAuthyIdNotFound = function(options) {
+  return mockRequestSms(404, _.defaults({ reason: 'failure-authy-id-not-found' }, options));
+};
+
+/**
+ * Export a request that will `succeed`.
  */
 
 module.exports.succeed = function(options) {
@@ -88,45 +103,37 @@ module.exports.succeed = function(options) {
 };
 
 /**
- * Expose a request that will `succeed` with the `force` parameter set to
+ * Export a request that will `succeed` with the `force` parameter set to
  * `true`.
  */
 
-module.exports.succeedWithForce = function() {
-  return mockRequestSms(200, { force: true });
+module.exports.succeedWithForce = function(options) {
+  return mockRequestSms(200, _.defaults({ force: true }, options));
 };
 
 /**
- * Expose a request that will `succeed` with the `shortcode` parameter set to
+ * Export a request that will `succeed` with the `shortcode` parameter set to
  * `true`.
  */
 
-module.exports.succeedWithShortcode = function() {
-  return mockRequestSms(200, { shortcode: true });
+module.exports.succeedWithShortcode = function(options) {
+  return mockRequestSms(200, _.defaults({ shortcode: true }, options));
 };
 
 /**
- * Expose a request that will `succeed` but with an unexpected response due
+ * Export a request that will `succeed` but with an unexpected response due
  * to the cellphone being missing.
  */
 
-module.exports.succeedWithMissingCellphone = function(options) {
-  return mockRequestSms(200, { reason: 'missing-cellphone' }, options);
+module.exports.succeedWithCellphoneMissing = function(options) {
+  return mockRequestSms(200, _.defaults({ reason: 'success-cellphone-missing' }, options));
 };
 
 /**
- * Expose a request that will `succeed` with a warning about the request to
+ * Export a request that will `succeed` with a warning about the request to
  * send an SMS to the user being ignored.
  */
 
-module.exports.succeedWithIgnoredSms = function(options) {
-  return mockRequestSms(200, { reason: 'ignore-sms' }, options);
-};
-
-/**
- * Expose a request that will `fail` due to an non-existing authy ID.
- */
-
-module.exports.failWithInvalidAuthyId = function(options) {
-  return mockRequestSms(404, { reason: 'invalid-authy-id' }, options);
+module.exports.succeedWithSmsIgnored = function(options) {
+  return mockRequestSms(200, _.defaults({ reason: 'success-sms-ignored' }, options));
 };

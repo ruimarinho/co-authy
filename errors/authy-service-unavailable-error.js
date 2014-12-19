@@ -23,7 +23,7 @@ function AuthyServiceUnavailableError(body) {
 }
 
 /**
- * Inherit prototype.
+ * Inherit from `AuthyHttpError`.
  */
 
 util.inherits(AuthyServiceUnavailableError, AuthyHttpError);

@@ -10,26 +10,26 @@ var nock = require('nock');
  */
 
 function mockGetApplicationDetails(statusCode, options) {
-  /* jshint camelcase:false*/
   statusCode = statusCode || 200;
   options = options || {};
 
+  /* jshint camelcase: false */
   var responses = {
-    succeed: {
-      message: 'Application information.',
-      success: true,
+    success: {
       app: {
+        app_id: 3,
         name: 'Sandbox App 2',
         plan: 'starter',
         sms_enabled: false,
-        white_label: false,
-        app_id: 3
-      }
-    },
-    fail: {}
+        white_label: false
+      },
+      message: 'Application information.',
+      success: true
+    }
   };
+  /* jshint camelcase: true */
 
-  var response = 200 === statusCode ? responses.succeed : responses.fail;
+  var response = 200 === statusCode ? responses.success : responses.failure;
 
   return nock('http://sandbox-api.authy.com')
     .filteringPath(function(path) {

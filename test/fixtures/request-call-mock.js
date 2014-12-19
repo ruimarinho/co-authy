@@ -3,62 +3,69 @@
  * Module dependencies.
  */
 
+var _ = require('lodash');
 var nock = require('nock');
+
+/**
+ * Mock a GET request to request a call.
+ */
 
 var mockRequestCall = function mockRequestCall(statusCode, options) {
   statusCode = statusCode || 200;
   options = options || {};
 
+  /* jshint camelcase: false */
   var responses = {
+    failureAuthyIdNotFound: {
+      errors: {
+        message: 'User not found.'
+      },
+      message: 'User not found.',
+      success: false,
+    },
+    failureUserSuspended: {
+      errors: {
+        message: 'User has been suspended.'
+      },
+      message: 'User has been suspended.',
+      success: false
+    },
     success: {
-      success: true,
       cellphone: '+351-XXX-XXX-XX67',
-      message: 'SMS token was sent'
+      message: 'Call started...',
+      success: true,
     },
     successCallIgnored: {
-      message: 'Ignored: Call is not needed for smartphones. Pass force=true if you want to actually call anyway.',
       cellphone: '+351-XXX-XXX-XX67',
       device: 'iphone',
       ignored: true,
+      message: 'Call ignored. User is using  App Tokens and this call is not necessary. Pass force=true if you still want to call users that are using the App.',
       success: true
     },
-    failure: {},
-    failureMissingCellphone: {
-      success: true,
-      message: 'An error ocurred while calling the cellphone'
-    },
-    failureInvalidAuthyId: {
-      message: 'User not found.',
-      success: false,
-      errors: {
-        message: 'User not found.'
-      }
-    },
-    failureUserSuspended: {
-      success: false,
-      message: 'User has been suspended.',
-      errors: {
-        message: 'User has been suspended.'
-      }
+    successMissingCellphone: {
+      message: 'An error ocurred while calling the cellphone',
+      success: true
     }
   };
+  /* jshint camelcase: true */
 
   var response;
+
   switch (options.reason) {
-    case 'ignore-call':
+    case 'failure-authy-id-not-found':
+      response = responses.failureAuthyIdNotFound;
+      break;
+
+    case 'failure-user-suspended':
+      response = responses.failureUserSuspended;
+      break;
+
+    case 'success-call-ignored':
       response = responses.successCallIgnored;
       break;
 
-    case 'invalid-authy-id':
-      response = responses.failureInvalidAuthyId;
-      break;
-
-    case 'missing-cellphone':
-      response = responses.failureMissingCellphone;
-      break;
-
-    case 'user-suspended':
-      response = responses.failureUserSuspended;
+    case 'success-cellphone-missing':
+      response = responses.successMissingCellphone;
       break;
 
     default:
@@ -86,7 +93,23 @@ var mockRequestCall = function mockRequestCall(statusCode, options) {
 };
 
 /**
- * Expose a request that will `succeed`.
+ * Export a request that will `fail` due to an non-existing authy id.
+ */
+
+module.exports.failWithAuthyIdNotFound = function(options) {
+  return mockRequestCall(404, _.defaults({ reason: 'failure-authy-id-not-found' }, options));
+};
+
+/**
+ * Export a request that will `fail` due to the user being suspended.
+ */
+
+module.exports.failWithUserSuspended = function(options) {
+  return mockRequestCall(503, _.defaults({ reason: 'failure-user-suspended' }, options));
+};
+
+/**
+ * Export a request that will `succeed`.
  */
 
 module.exports.succeed = function(options) {
@@ -94,44 +117,28 @@ module.exports.succeed = function(options) {
 };
 
 /**
- * Expose a request that will `succeed` with the force parameter set to
+ * Export a request that will `succeed` with the force parameter set to
  * `true`.
  */
 
-module.exports.succeedWithForce = function() {
-  return mockRequestCall(200, { force: true });
+module.exports.succeedWithForce = function(options) {
+  return mockRequestCall(200, _.defaults({ force: true }, options));
 };
 
 /**
- * Expose a request that will `succeed` with a warning about the request to
+ * Export a request that will `succeed` with a warning about the request to
  * call the user being ignored.
  */
 
-module.exports.succeedWithIgnoredCall = function(options) {
-  return mockRequestCall(200, { reason: 'ignore-call' }, options);
+module.exports.succeedWithCallIgnored = function(options) {
+  return mockRequestCall(200, _.defaults({ reason: 'success-call-ignored' }, options));
 };
 
 /**
- * Expose a request that will `succeed` but with an unexpected response due
+ * Export a request that will `succeed` but with an unexpected response due
  * to the cellphone being missing.
  */
 
-module.exports.succeedWithMissingCellphone = function(options) {
-  return mockRequestCall(200, { reason: 'missing-cellphone' }, options);
-};
-
-/**
- * Expose a request that will `fail` due to an non-existing authy ID.
- */
-
-module.exports.failWithInvalidAuthyId = function(options) {
-  return mockRequestCall(404, { reason: 'invalid-authy-id' }, options);
-};
-
-/**
- * Expose a request that will `fail` due to the user being suspended.
- */
-
-module.exports.failureUserSuspended = function(options) {
-  return mockRequestCall(503, { reason: 'user-suspended' }, options);
+module.exports.succeedWithCellphoneMissing = function(options) {
+  return mockRequestCall(200, _.defaults({ reason: 'success-cellphone-missing' }, options));
 };

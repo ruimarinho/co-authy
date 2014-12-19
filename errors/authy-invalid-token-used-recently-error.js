@@ -17,7 +17,7 @@ function AuthyInvalidTokenUsedRecentlyError(body) {
 }
 
 /**
- * Inherit prototype.
+ * Inherit from `AuthyInvalidTokenError`.
  */
 
 util.inherits(AuthyInvalidTokenUsedRecentlyError, AuthyInvalidTokenError);

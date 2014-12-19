@@ -11,60 +11,63 @@ var nock = require('nock');
  */
 
 var mockRegisterUser = function mockRegisterUser(statusCode, options) {
-  /* jshint camelcase:false*/
   statusCode = statusCode || 200;
   options = options || {};
 
+  /* jshint camelcase: false */
   var responses = {
-    succeed: {
+    failureApiKeyInvalid: {
+      errors: {
+        message: 'Invalid API key.'
+      },
+      message: 'Invalid API key.',
+      success: false
+    },
+    failureRequestInvalid: {
+      errors: {
+        message: 'User was not valid.',
+      },
+      message: 'User was not valid.',
+      success: false
+    },
+    success: {
       user: {
         id: 1635
-      }
+      },
+      message: 'User created successfully.',
+      success: true
     },
-    succeedWithInvalidAuthyId: {
+    successAuthyIdMissing: {
       user: {
         authy_id: 1
       }
-    },
-    fail: {},
-    failWithInvalidApiKey: {
-      message: 'Invalid API key.',
-      success: false,
-      errors: {
-        message: 'Invalid API key.'
-      }
-    },
-    failWithInvalidRequest: {
-      message: 'User was not valid.',
-      success: false,
-      errors: {
-        message: 'User was not valid.',
-      }
     }
   };
+  /* jshint camelcase: true */
 
   var errors = {
-    unsupported: 'is not supported',
-    invalid: 'is invalid',
     'invalid-blank': 'is invalid and can\'t be blank',
+    invalid: 'is invalid',
+    unsupported: 'is not supported'
   };
 
   var response;
+
   switch (options.reason) {
-    case 'missing-user-id':
-      response = responses.succeedWithInvalidAuthyId;
+    case 'failure-api-key-invalid':
+      response = responses.failureApiKeyInvalid;
       break;
 
-    case 'invalid-request':
-      response = responses.failWithInvalidRequest;
+    case 'failure-request-invalid':
+      response = responses.failureRequestInvalid;
       break;
 
-    case 'invalid-api-key':
-      response = responses.failWithInvalidApiKey;
+    case 'failure-missing-user-id':
+      response = responses.successAuthyIdMissing;
       break;
 
     default:
-      response = 200 === statusCode ? responses.succeed : responses.fail;
+      response = 200 === statusCode ? responses.success : responses.failure;
   }
 
   if (options.errors) {
@@ -89,7 +92,24 @@ var mockRegisterUser = function mockRegisterUser(statusCode, options) {
 };
 
 /**
- * Expose a request that will `succeed`.
+ * Export a request that will `fail` due to an invalid API key.
+ */
+
+module.exports.failWithApiKeyInvalid = function(options) {
+  return mockRegisterUser(401, _.defaults({ reason: 'failure-api-key-invalid' }, options));
+};
+
+/**
+ * Export a request that will `fail` due to validation errors on the remote
+ * end.
+ */
+
+module.exports.failWithRequestInvalid = function(options) {
+  return mockRegisterUser(400, _.defaults({ reason: 'failure-request-invalid' }, options));
+};
+
+/**
+ * Export a request that will `succeed`.
  */
 
 module.exports.succeed = function(options) {
@@ -97,26 +117,10 @@ module.exports.succeed = function(options) {
 };
 
 /**
- * Expose a request that will `succeed` but the response will not include a
+ * Export a request that will `succeed` but the response will not include a
  * user id as expected.
  */
 
 module.exports.succeedWithMissingUserId = function(options) {
-  return mockRegisterUser(200, { reason: 'missing-user-id' }, options);
-};
-
-/**
- * Expose a request that will `fail` due to validation errors on the remote end.
- */
-
-module.exports.failWithInvalidRequest = function(errors) {
-  return mockRegisterUser(400, { reason: 'invalid-request', errors: errors });
-};
-
-/**
- * Expose a request that will `fail` due to an invalid API key.
- */
-
-module.exports.failWithInvalidApiKey = function(options) {
-  return mockRegisterUser(401, { reason: 'invalid-api-key' }, options);
+  return mockRegisterUser(200, _.defaults({ reason: 'failure-missing-user-id' }, options));
 };

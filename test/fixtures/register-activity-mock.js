@@ -13,15 +13,16 @@ function mockRegisterActivity(statusCode, options) {
   statusCode = statusCode || 200;
   options = options || {};
 
+  /* jshint camelcase: false */
   var responses = {
-    succeed: {
+    success: {
       message: 'Activity was created.',
       success: true
-    },
-    fail: {}
+    }
   };
+  /* jshint camelcase: true */
 
-  var response = 200 === statusCode ? responses.succeed : responses.fail;
+  var response = 200 === statusCode ? responses.success : responses.failure;
 
   return nock('http://sandbox-api.authy.com')
     .filteringPath(function(path) {

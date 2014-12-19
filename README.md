@@ -4,7 +4,7 @@ An Authy client for node.js using generators via [co](https://github.com/visionm
 
 ## Status
 
-[![NPM version][npm-image]][npm-url]
+[![npm version][npm-image]][npm-url]
 [![build status][travis-image]][travis-url]
 
 ## Installation
@@ -144,15 +144,11 @@ If you wish to run the tests by hitting the actual URLs, you may disable `nock` 
 $ NOCK_OFF=true AUTHY_KEY=<secret key> npm test
 ```
 
-## Author
-
-[Rui Marinho](https://github.com/ruimarinho)
-
 ## License
 
 MIT
 
-[npm-image]: https://img.shields.io/npm/v/co-authy.svg?style=flat
+[npm-image]: https://img.shields.io/npm/v/co-authy.svg?style=flat-square
 [npm-url]: https://npmjs.org/package/co-authy
-[travis-image]: https://img.shields.io/travis/seegno/co-authy.svg?style=flat
+[travis-image]: https://img.shields.io/travis/seegno/co-authy.svg?style=flat-square
 [travis-url]: https://travis-ci.org/seegno/co-authy

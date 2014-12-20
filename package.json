@@ -28,6 +28,7 @@
   "bugs": "https://github.com/seegno/co-authy/issues",
   "license": "MIT",
   "scripts": {
+    "changelog": "./node_modules/.bin/github-changes --owner seegno --repository co-authy --auth --only-pulls --use-commit-body --title 'Changelog' --date-format '/ YYYY-MM-DD'",
     "test": "NODE_ENV=test ./node_modules/.bin/mocha --harmony-generators test/*_test.js test/**/*_test.js"
   },
   "dependencies": {

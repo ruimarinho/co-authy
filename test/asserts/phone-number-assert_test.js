@@ -4,6 +4,7 @@
  */
 
 var Assert = require('validator.js').Assert;
+var Validator = require('validator.js').Validator;
 var Violation = require('validator.js').Violation;
 var assert = require('../../lib/asserts/phone-number-assert');
 var should = require('should');
@@ -28,48 +29,27 @@ describe('PhoneNumberAssert', function() {
     }
   });
 
-  it('should throw an error if the input value is an `array`', function() {
-    try {
-      new Assert().PhoneNumber('PT').validate([]);
+  it('should throw an error if the phone number is not a string', function() {
+    [[], {}, 123].forEach(function(choice) {
+      try {
+        new Assert().PhoneNumber('PT').validate(choice);
 
-      should.fail();
-    } catch (e) {
-      e.should.be.instanceOf(Violation);
-      e.violation.value.should.equal('must_be_a_string');
-    }
+        should.fail();
+      } catch (e) {
+        e.should.be.instanceOf(Violation);
+        /* jshint camelcase: false */
+        e.violation.value.should.equal(Validator.errorCode.must_be_a_string);
+        /* jshint camelcase: true */
+      }
+    });
   });
 
-  it('should throw an error if the input value is an `object`', function() {
-    try {
-      new Assert().PhoneNumber('PT').validate({});
-
-      should.fail();
-    } catch (e) {
-      e.should.be.instanceOf(Violation);
-      e.violation.value.should.equal('must_be_a_string');
-    }
-  });
-
-  it('should throw an error if the input value is a `number`', function() {
-    try {
-      new Assert().PhoneNumber('PT').validate(12345678);
-
-      should.fail();
-    } catch (e) {
-      e.should.be.instanceOf(Violation);
-      e.violation.value.should.equal('must_be_a_string');
-    }
-  });
-
-  it('should throw an error if the input is invalid', function() {
-    var calls = 0;
-    var numbers = [
+  it('should throw an error if the phone number is invalid', function() {
+    [
       ['MX', '+3511234567'],
       ['IT', '541-754-3010'],
       ['GB', '(809) 234 5678'],
-    ];
-
-    numbers.forEach(function(pairs) {
+    ].forEach(function(pairs) {
       try {
         new Assert().PhoneNumber(pairs[0]).validate(pairs[1]);
 
@@ -77,16 +57,12 @@ describe('PhoneNumberAssert', function() {
       } catch (e) {
         e.should.be.instanceOf(Violation);
         e.violation.reason.should.match(/is not valid/);
-        calls++;
       }
     });
-
-    numbers.length.should.equal(calls);
   });
 
   it('should throw an error if the input is invalid for the country of origin', function() {
-    var calls = 0;
-    var numbers = [
+    [
       ['AU', '0011 1 408-550-3542'], // "US" was expected
       ['PT', '+5215555123123'], // "MX" was expected
       ['ES', '00 39 312 123 1234'], // "IT" was expected
@@ -97,9 +73,7 @@ describe('PhoneNumberAssert', function() {
       ['1', '+351 912 345 679'], // "PT" was expected
       ['41', '+1 408-550-3542'], // "US" was expected
       ['61', '0011 1 408-550-3542'], // "US" was expected
-    ];
-
-    numbers.forEach(function(pairs) {
+    ].forEach(function(pairs) {
       try {
         new Assert().PhoneNumber(pairs[0]).validate(pairs[1]);
 
@@ -107,14 +81,11 @@ describe('PhoneNumberAssert', function() {
       } catch (e) {
         e.should.be.instanceOf(Violation);
         e.violation.reason.should.match(/is valid but not for country code/);
-        calls++;
       }
     });
-
-    numbers.length.should.equal(calls);
   });
 
-  it('should accept an input value that is valid for the country of origin', function() {
+  it('should accept an phone number that is valid for the country of origin', function() {
     [
       ['882', '13300655'],
       ['883', '510001341234'],

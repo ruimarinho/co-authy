@@ -6,8 +6,10 @@
 require('should');
 
 var Assert = require('validator.js').Assert;
+var Validator = require('validator.js').Validator;
 var Violation = require('validator.js').Violation;
 var assert = require('../../lib/asserts/totp-token-assert');
+var should = require('should');
 
 /**
  * Test `TotpTokenAssert`.
@@ -18,74 +20,56 @@ describe('TotpTokenAssert', function() {
     Assert.prototype.TotpToken = assert;
   });
 
-  it('should throw an error if the input value is an `array`', function() {
-    try {
-      new Assert().TotpToken().validate([]);
-    } catch (e) {
-      e.should.be.instanceOf(Violation);
-      e.violation.value.should.equal('must_be_a_string');
-    }
-  });
-
-  it('should throw an error if the input value is an `object`', function() {
-    try {
-      new Assert().TotpToken().validate({});
-    } catch (e) {
-      e.should.be.instanceOf(Violation);
-      e.violation.value.should.equal('must_be_a_string');
-    }
-  });
-
-  it('should throw an error if the input value is a `number`', function() {
-    try {
-      new Assert().TotpToken().validate(12345678);
-    } catch (e) {
-      e.should.be.instanceOf(Violation);
-      e.violation.value.should.equal('must_be_a_string');
-    }
-  });
-
-  it('should throw an error if the input value is not numeric', function() {
-    var input = ['-10', '1.101', '1e6', new Array(50).join('foo')];
-    var calls = 0;
-
-    input.forEach(function(value) {
+  it('should throw an error if the token is not a string or a number', function() {
+    [[], {}].forEach(function(choice) {
       try {
-        new Assert().TotpToken().validate(value);
+        new Assert().TotpToken().validate(choice);
+
+        should.fail();
       } catch (e) {
-        calls++;
         e.should.be.instanceOf(Violation);
-        e.violation.value.should.equal('must_be_numeric');
+        /* jshint camelcase: false */
+        e.violation.value.should.equal(Validator.errorCode.must_be_a_string_or_number);
+        /* jshint camelcase: true */
       }
     });
-
-    calls.should.equal(input.length);
   });
 
-  it('should throw an error if the input value length is below minimum boundary', function() {
+  it('should throw an error if the token is not numeric', function() {
+    ['-10', '1.101', '1e6', new Array(50).join('foo')].forEach(function(value) {
+      try {
+        new Assert().TotpToken().validate(value);
+
+        should.fail();
+      } catch (e) {
+        e.should.be.instanceOf(Violation);
+        e.violation.value.should.equal(Validator.errorCode.must_be_numeric);
+      }
+    });
+  });
+
+  it('should throw an error if the token length is below the minimum boundary', function() {
     try {
       new Assert().TotpToken().validate('10');
+
+      should.fail();
     } catch (e) {
       e.should.be.instanceOf(Violation);
       e.violation.min.should.equal(6);
     }
   });
 
-  it('should throw an error if the input value length is above maximum boundary', function() {
-    var input = ['1001001001', '000000009', '0000000010'];
-    var calls = 0;
-
-    input.forEach(function(value) {
+  it('should throw an error if the token length is above the maximum boundary', function() {
+    ['1001001001', '000000009', '0000000010'].forEach(function(value) {
       try {
         new Assert().TotpToken().validate(value);
+
+        should.fail();
       } catch (e) {
-        calls++;
         e.should.be.instanceOf(Violation);
         e.violation.max.should.equal(8);
       }
     });
-
-    calls.should.equal(input.length);
   });
 
   it('should have default boundaries between 6 and 8 digits', function() {
@@ -96,10 +80,15 @@ describe('TotpTokenAssert', function() {
   });
 
   it('should accept tokens between 6 and 8 digits', function() {
-    var input = ['123456', '0601338', '5166240', '12345678'];
+    ['123456', '0601338', '5166240', '12345678'].forEach(function(value) {
+      try {
+        new Assert().TotpToken().validate(value);
+      } catch (e) {
+        console.error(e);
+        console.error(e.stack);
 
-    input.forEach(function(value) {
-      new Assert().TotpToken().validate(value);
+        throw e;
+      }
     });
   });
 });

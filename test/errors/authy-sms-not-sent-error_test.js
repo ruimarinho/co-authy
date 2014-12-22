@@ -4,27 +4,27 @@
  */
 
 var AuthyHttpError = require('../../lib/errors/authy-http-error');
-var AuthyUserNotFoundError = require('../../lib/errors/authy-user-not-found-error');
+var AuthySmsNotSentError = require('../../lib/errors/authy-sms-not-sent-error');
 
 /**
- * Test `AuthyUserNotFoundError`.
+ * Test `AuthySmsNotSentError`.
  */
 
-describe('AuthyUserNotFoundError', function() {
+describe('AuthySmsNotSentError', function() {
   it('should inherit from `AuthyHttpError`', function() {
-    var error = new AuthyUserNotFoundError();
+    var error = new AuthySmsNotSentError();
 
     error.should.be.instanceOf(AuthyHttpError);
   });
 
   it('should have a default message', function() {
-    var error = new AuthyUserNotFoundError();
+    var error = new AuthySmsNotSentError();
 
-    error.message.should.equal('User not found');
+    error.message.should.equal('SMS not sent');
   });
 
   it('should accept a `body`', function() {
-    var error = new AuthyUserNotFoundError({ foo: 'bar' });
+    var error = new AuthySmsNotSentError({ foo: 'bar' });
 
     error.body.should.eql({ foo: 'bar' });
   });

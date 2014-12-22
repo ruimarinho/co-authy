@@ -4,14 +4,14 @@
  */
 
 var AuthyClient = require('..');
-var AuthyError = require('../errors/authy-error');
-var AuthyHttpError = require('../errors/authy-http-error');
-var AuthyInvalidApiKeyError = require('../errors/authy-invalid-api-key-error');
-var AuthyInvalidRequestError = require('../errors/authy-invalid-request-error');
-var AuthyInvalidTokenError = require('../errors/authy-invalid-token-error');
-var AuthyInvalidTokenUsedRecentlyError = require('../errors/authy-invalid-token-used-recently-error');
-var AuthyUserNotFoundError = require('../errors/authy-user-not-found-error');
-var AuthyValidationFailedError = require('../errors/authy-validation-failed-error');
+var AuthyError = require('../lib/errors/authy-error');
+var AuthyHttpError = require('../lib/errors/authy-http-error');
+var AuthyInvalidApiKeyError = require('../lib/errors/authy-invalid-api-key-error');
+var AuthyInvalidRequestError = require('../lib/errors/authy-invalid-request-error');
+var AuthyInvalidTokenError = require('../lib/errors/authy-invalid-token-error');
+var AuthyInvalidTokenUsedRecentlyError = require('../lib/errors/authy-invalid-token-used-recently-error');
+var AuthyUserNotFoundError = require('../lib/errors/authy-user-not-found-error');
+var AuthyValidationFailedError = require('../lib/errors/authy-validation-failed-error');
 var Validator = require('validator.js').Validator;
 var mocks = require('./mocks');
 var should = require('should');

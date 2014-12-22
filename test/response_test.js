@@ -3,14 +3,14 @@
  * Module dependencies.
  */
 
-var AuthyHttpError = require('../errors/authy-unauthorized-access-error');
-var AuthyInvalidApiKeyError = require('../errors/authy-invalid-api-key-error');
-var AuthyInvalidRequestError = require('../errors/authy-invalid-request-error');
-var AuthyInvalidTokenError = require('../errors/authy-invalid-token-error');
-var AuthyInvalidTokenUsedRecentlyError = require('../errors/authy-invalid-token-used-recently-error');
-var AuthyServiceUnavailableError = require('../errors/authy-service-unavailable-error');
-var AuthyUnauthorizedAccessError = require('../errors/authy-unauthorized-access-error');
-var AuthyUserSuspendedError = require('../errors/authy-user-suspended-error');
+var AuthyHttpError = require('../lib/errors/authy-unauthorized-access-error');
+var AuthyInvalidApiKeyError = require('../lib/errors/authy-invalid-api-key-error');
+var AuthyInvalidRequestError = require('../lib/errors/authy-invalid-request-error');
+var AuthyInvalidTokenError = require('../lib/errors/authy-invalid-token-error');
+var AuthyInvalidTokenUsedRecentlyError = require('../lib/errors/authy-invalid-token-used-recently-error');
+var AuthyServiceUnavailableError = require('../lib/errors/authy-service-unavailable-error');
+var AuthyUnauthorizedAccessError = require('../lib/errors/authy-unauthorized-access-error');
+var AuthyUserSuspendedError = require('../lib/errors/authy-user-suspended-error');
 var parse = require('../lib/response');
 
 /**

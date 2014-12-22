@@ -3,8 +3,8 @@
  * Module dependencies.
  */
 
-var AuthyInvalidTokenError = require('../../errors/authy-invalid-token-error');
-var AuthyUnauthorizedAccessError = require('../../errors/authy-unauthorized-access-error');
+var AuthyInvalidTokenError = require('../../lib/errors/authy-invalid-token-error');
+var AuthyUnauthorizedAccessError = require('../../lib/errors/authy-unauthorized-access-error');
 
 /**
  * Test `AuthyInvalidTokenError`.

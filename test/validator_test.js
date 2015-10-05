@@ -3,10 +3,10 @@
  * Module dependencies.
  */
 
-var ValidationFailedError = require('../lib/errors/authy-validation-failed-error');
+var AuthyValidationFailedError = require('../src/errors/authy-validation-failed-error');
 var Assert = require('validator.js').Assert;
 var should = require('should');
-var validator = require('../lib/validator');
+var validator = require('../src/validator');
 
 /**
  * Test `Validator`.
@@ -20,7 +20,7 @@ describe('Validator', function() {
 
         should.fail();
       } catch (e) {
-        e.should.be.instanceOf(ValidationFailedError);
+        e.should.be.instanceOf(AuthyValidationFailedError);
         e.errors.name.should.have.length(1);
         e.errors.name[0].show().assert.should.equal('Null');
       }

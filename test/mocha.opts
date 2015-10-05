@@ -1,4 +1,0 @@
---bail
---reporter spec
---require co-mocha
---require should

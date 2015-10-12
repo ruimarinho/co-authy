@@ -1,64 +1,213 @@
-/* jshint camelcase:false*/
 
 /**
- * Test dependencies.
+ * Module dependencies.
  */
 
-var AuthyClient = require('..');
-var AuthyError = require('../errors/authy-error');
-var AuthyHttpError = require('../errors/authy-http-error');
-var AuthyInvalidApiKeyError = require('../errors/authy-invalid-api-key-error');
-var AuthyInvalidRequestError = require('../errors/authy-invalid-request-error');
-var AuthyInvalidTokenError = require('../errors/authy-invalid-token-error');
-var AuthyInvalidTokenUsedRecentlyError = require('../errors/authy-invalid-token-used-recently-error');
-var AuthyValidationFailedError = require('../errors/authy-validation-failed-error');
-var Validator = require('validator.js').Validator;
-var mocks = require('./mocks');
-var should = require('should');
-var sinon = require('sinon');
+import * as mocks from './mocks';
+import AuthyClient from '../src';
+import AuthyError from '../src/errors/authy-error';
+import AuthyHttpError from '../src/errors/authy-http-error';
+import AuthyInvalidApiKeyError from '../src/errors/authy-invalid-api-key-error';
+import AuthyInvalidRequestError from '../src/errors/authy-invalid-request-error';
+import AuthyInvalidTokenError from '../src/errors/authy-invalid-token-error';
+import AuthyInvalidTokenUsedRecentlyError from '../src/errors/authy-invalid-token-used-recently-error';
+import AuthyUserNotFoundError from '../src/errors/authy-user-not-found-error';
+import AuthyValidationFailedError from '../src/errors/authy-validation-failed-error';
+import should from 'should';
+import sinon from 'sinon';
+import { Validator } from 'validator.js';
 
-describe('Client', function() {
-  var client;
+/**
+ * Test `Client`.
+ */
 
-  beforeEach(function(){
-    /* jshint newcap:false*/
-    client = AuthyClient(process.env.AUTHY_KEY || 'fooqux', { host: 'http://sandbox-api.authy.com' });
-  });
+describe('Client', () => {
+  const client = new AuthyClient({ key: process.env.AUTHY_KEY || 'fooqux' }, { host: 'http://sandbox-api.authy.com' });
 
-  it('should throw an error if `apiKey` is missing', function() {
+  it('should throw an error if the api `key` is missing', () => {
     try {
-      new AuthyClient(undefined, { host: 'http://sandbox-api.authy.com' });
+      new AuthyClient();
+
+      should.fail();
     } catch (e) {
       e.should.be.instanceOf(AuthyValidationFailedError);
-      e.errors.api_key.show().assert.should.equal('HaveProperty');
+      e.errors.key.show().assert.should.equal('HaveProperty');
     }
   });
 
-  it('should not require the `new` keyword', function() {
-    client.should.be.instanceOf(AuthyClient);
+  it('should set defaults', function() {
+    const testClient = new AuthyClient({ key: 'foo' });
+
+    testClient.key.should.equal('foo');
+    testClient.host.should.equal('https://api.authy.com');
   });
 
-  it('should set default options', function() {
-    var c = new AuthyClient('foo');
-    c.apiKey.should.equal('foo');
-    c.apiUrl.should.equal('https://api.authy.com');
+  it('should throw an error if api `key` is invalid', async () => {
+    mocks.registerUser.failWithApiKeyInvalid();
+
+    const testClient = new AuthyClient({ key: 'foo' }, { host: 'http://sandbox-api.authy.com' });
+
+    try {
+      await testClient.registerUser('foo@bar.com', '408-550-3542');
+
+      should.fail();
+    } catch(e) {
+      e.should.be.instanceOf(AuthyInvalidApiKeyError);
+      e.message.should.equal('Invalid API key.');
+    }
   });
 
-  describe('#registerUser', function() {
-    it('should throw an error if the api `key` is invalid', function *() {
-      mocks.registerUser.failWithInvalidApiKey();
+  describe('registerUser()', () => {
+    ['authyId', 'email', 'phone', 'countryCode'].forEach(parameter => {
+      it(`should throw an error if \`${parameter}\` is missing`, async () => {
+        try {
+          await client.registerUser();
 
-      var c = new AuthyClient('foo', { host: 'http://sandbox-api.authy.com' });
+          should.fail();
+        } catch (e) {
+          e.should.be.instanceOf(AuthyValidationFailedError);
+          e.errors[parameter].show().assert.should.equal('HaveProperty');
+        }
+      });
+    });
 
+    it('should throw an error if `email` is invalid', async () => {
       try {
-        yield c.registerUser('foo@bar.com', '408-550-3542');
+        await client.registerUser({ email: 'foo' });
+
+        should.fail();
       } catch (e) {
-        e.should.be.instanceOf(AuthyInvalidApiKeyError);
-        e.message.should.equal('Invalid API key.');
+        e.should.be.instanceOf(AuthyValidationFailedError);
+        e.errors.email[0].show().assert.should.equal('Email');
       }
     });
 
-    it('should support `country_code` in the ISO 3166-1 alpha-2 format', function *() {
+    it('should throw an error if `phone` invalid', async () => {
+      try {
+        client.registerUser({ email: 'foo@bar.com', phone: 'FOO', countryCode: '351' });
+
+        should.fail();
+      } catch (e) {
+        e.should.be.instanceOf(AuthyValidationFailedError);
+        e.errors.phone[0].show().assert.should.equal('PhoneNumber');
+      }
+    });
+
+    it('should throw an error if `countryCode` is not supported', async () => {
+      try {
+        client.registerUser({ email: 'foo@bar.com', phone: '123456789', countryCode: '12345' });
+
+        should.fail();
+      } catch (e) {
+        e.should.be.instanceOf(AuthyValidationFailedError);
+        e.errors.countryCode[0].show().assert.should.equal('CountryCallingCode');
+      }
+    });
+
+    it('should throw an error if `email` is not sent', async () => {
+      sinon.stub(Validator.prototype, 'validate', () => { return true; });
+
+      mocks.registerUser.failWithRequestInvalid({ errors: { email: 'invalid-blank' } });
+
+      try {
+        await client.registerUser({ phone: '123456789', countryCode: '351' });
+
+        should.fail();
+      } catch (e) {
+        e.should.be.instanceOf(AuthyInvalidRequestError);
+        e.message.should.equal('User was not valid.');
+        e.errors.should.eql({ message: 'User was not valid.', email: 'is invalid and can\'t be blank' });
+      }
+
+      Validator.prototype.validate.restore();
+    });
+
+    it('should throw an error if `email` is sent but is considered invalid', async () => {
+      sinon.stub(Validator.prototype, 'validate', () => { return true; });
+
+      mocks.registerUser.failWithRequestInvalid({ errors: { email: 'invalid' } });
+
+      try {
+        await client.registerUser({ email: 'foo', phone: '123456789', countryCode: '351' });
+
+        should.fail();
+      } catch (e) {
+        e.should.be.instanceOf(AuthyInvalidRequestError);
+        e.message.should.equal('User was not valid.');
+        e.errors.should.eql({ message: 'User was not valid.', email: 'is invalid' });
+      }
+
+      Validator.prototype.validate.restore();
+    });
+
+    it('should throw an error if `cellphone` is not sent', async () => {
+      sinon.stub(Validator.prototype, 'validate', () => { return true; });
+
+      mocks.registerUser.failWithRequestInvalid({ errors: { cellphone: 'invalid' } });
+
+      try {
+        await client.registerUser({ email: 'foo@bar.com', countryCode: '351' });
+
+        should.fail();
+      } catch (e) {
+        e.should.be.instanceOf(AuthyInvalidRequestError);
+        e.message.should.equal('User was not valid.');
+        e.errors.should.eql({ message: 'User was not valid.', cellphone: 'is invalid' });
+      }
+
+      Validator.prototype.validate.restore();
+    });
+
+    it('should throw an error if `cellphone` is sent but considered invalid', async () => {
+      sinon.stub(Validator.prototype, 'validate', () => { return true; });
+
+      mocks.registerUser.failWithRequestInvalid({ errors: { cellphone: 'invalid' } });
+
+      try {
+        await client.registerUser({ email: 'foo@bar.com', phone: 'FOO', countryCode: '351' });
+
+        should.fail();
+      } catch (e) {
+        e.should.be.instanceOf(AuthyInvalidRequestError);
+        e.message.should.equal('User was not valid.');
+        e.errors.should.eql({ message: 'User was not valid.', cellphone: 'is invalid' });
+      }
+
+      Validator.prototype.validate.restore();
+    });
+
+    it('should throw an error if `countryCode` is sent but is considered unsupported', async () => {
+      sinon.stub(Validator.prototype, 'validate', () => { return true; });
+
+      mocks.registerUser.failWithRequestInvalid({ errors: { countryCode: 'unsupported' } });
+
+      try {
+        await client.registerUser({ email: 'foo@bar.com', phone: '123456789', countryCode: '12345' });
+
+        should.fail();
+      } catch (e) {
+        e.should.be.instanceOf(AuthyInvalidRequestError);
+        e.message.should.equal('User was not valid.');
+        e.errors.should.eql({ message: 'User was not valid.', countryCode: 'is not supported' });
+      }
+
+      Validator.prototype.validate.restore();
+    });
+    // it('should throw an error if `user.id` is not returned', async () => {
+    //   mocks.registerUser.succeedWithMissingUserId();
+
+    //   try {
+    //     await client.registerUser({ email: 'foo@bar.com', phone: '911234567', countryCode: '351' })
+
+    //     should.fail();
+    //   } catch (e) {
+    //     e.should.be.instanceOf(AuthyError);
+    //     e.message.should.equal('`user.id` is missing');
+    //     e.body.should.not.be.empty;
+    //   }
+    // });
+
+    it('should support `countryCode` in the ISO 3166-1 alpha-2 format', async () => {
       mocks.registerUser.succeed({
         matchBody: {
           'user[email]': 'foo@bar.com',
@@ -67,22 +216,28 @@ describe('Client', function() {
         }
       });
 
-      yield client.registerUser('foo@bar.com', '911234567', 'PT');
+      await client.registerUser({ email: 'foo@bar.com', phone: '911234567', countryCode: 'PT' });
     });
 
-    it('should support the special International Networks `country_code` (+882)', function *() {
+    it('should support `countryCode` in the special International Networks (+882)', async () => {
       mocks.registerUser.succeed();
 
-      yield client.registerUser('foo@bar.com', '13300655', '882');
+      await client.registerUser({ email: 'foo@bar.com', phone: '13300655', countryCode: '882' });
     });
 
-    it('should support the special International Networks `country_code` (+883)', function *() {
+    it('should support `countryCode` in the special International Networks (+883)', async () => {
       mocks.registerUser.succeed();
 
-      yield client.registerUser('foo@bar.com', '510012345', '883');
+      await client.registerUser({ email: 'foo@bar.com', phone: '510012345', countryCode: '883' });
     });
 
-    it('should default the `country_code` to USA (+1) if it is missing', function *() {
+    it('should support `countryCode` assigned to multiple countries', async () => {
+      mocks.registerUser.succeed();
+
+      await client.registerUser({ email: 'foo@bar.com', phone: '408-550-3542', countryCode: '1' });
+    });
+
+    it.only('should default `countryCode` to USA (+1) if missing', async () => {
       mocks.registerUser.succeed({
         matchBody: {
           'user[email]': 'foo@bar.com',
@@ -91,28 +246,10 @@ describe('Client', function() {
         }
       });
 
-      yield client.registerUser('foo@bar.com', '562 756--2233');
+      await client.registerUser({ email: 'foo@bar.com', phone: '562756--2233' });
     });
 
-    it('should throw an error if the authy user `id` is not returned', function *() {
-      mocks.registerUser.succeedWithMissingUserId();
-
-      try {
-        yield client.registerUser('foo@bar.com', '911234567', '351');
-      } catch (e) {
-        e.should.be.instanceOf(AuthyError);
-        e.message.should.equal('`user.id` is missing');
-        e.body.should.not.be.empty;
-      }
-    });
-
-    it('should accept a `country_code` assigned to multiple countries', function *() {
-      mocks.registerUser.succeed();
-
-      (yield client.registerUser('foo@bar.com', '408-550-3542', '1')).user.id.should.equal(1635);
-    });
-
-    it('should send a properly formatted e164 version', function *() {
+    it('should send `cellphone` in the e164 format', async () => {
       var numbers = [
         [['15515025000', 'MX'], ['15515025000', '52']],
         [['044 55 1502-5000', 'MX'], ['15515025000', '52']],
@@ -128,662 +265,434 @@ describe('Client', function() {
           }
         });
 
-        yield client.registerUser('foo@bar.com', numbers[i][0][0], numbers[i][0][1]);
+        await client.registerUser({ email: 'foo@bar.com', phone: numbers[i][0][0], countryCode: numbers[i][0][1] });
       }
     });
 
-    it('should return the authy user `id`', function *() {
+    it('should return the authy user `id`', async () => {
       mocks.registerUser.succeed();
 
-      (yield client.registerUser('foo@bar.com', '911234567', '351')).user.id.should.equal(1635);
-    });
+      const response = await client.registerUser({ email: 'foo@bar.com', phone: '911234567', countryCode: '351' });
 
-    describe('client validation', function() {
-      it('should throw an error if `email` is missing', function *() {
-        try {
-          yield client.registerUser(undefined, '123456789');
-
-          should.fail();
-        } catch (e) {
-          e.should.be.instanceOf(AuthyValidationFailedError);
-          e.errors.email.show().assert.should.equal('HaveProperty');
-        }
-      });
-
-      it('should throw an error if `email` is invalid', function *() {
-        try {
-          yield client.registerUser('foo', '123456789');
-
-          should.fail();
-        } catch (e) {
-          e.should.be.instanceOf(AuthyValidationFailedError);
-          e.errors.email.should.have.length(1);
-          e.errors.email[0].show().assert.should.equal('Email');
-        }
-      });
-
-      it('should throw an error if `cellphone` is missing', function *() {
-        try {
-          yield client.registerUser('foo@bar.com');
-
-          should.fail();
-        } catch (e) {
-          e.should.be.instanceOf(AuthyValidationFailedError);
-          e.errors.cellphone.show().assert.should.equal('HaveProperty');
-        }
-      });
-
-      it('should throw an error if `cellphone` invalid', function *() {
-        try {
-          yield client.registerUser('foo@bar.com', 'FOO', '351');
-
-          should.fail();
-        } catch (e) {
-          e.should.be.instanceOf(AuthyValidationFailedError);
-          e.errors.cellphone.should.have.length(1);
-          e.errors.cellphone[0].show().assert.should.equal('PhoneNumber');
-        }
-      });
-
-      it('should throw an error if `cellphone` is invalid', function *() {
-        try {
-          yield client.registerUser('foo@bar.com', '');
-
-          should.fail();
-        } catch (e) {
-          e.should.be.instanceOf(AuthyValidationFailedError);
-          e.errors.cellphone[0].show().assert.should.equal('Required');
-        }
-      });
-
-      it('should throw an error if `country_code` is not supported', function *() {
-        try {
-          yield client.registerUser('foo@bar.com', '123456789', '12345');
-
-          should.fail();
-        } catch (e) {
-          e.should.be.instanceOf(AuthyValidationFailedError);
-          e.errors.country_code.should.have.length(1);
-          e.errors.country_code[0].show().assert.should.equal('CountryCallingCode');
-        }
-      });
-    });
-
-    describe('remote validation', function() {
-      it('should throw an error if `email` is missing', function *() {
-        sinon.stub(Validator.prototype, 'validate', function() { return true; });
-
-        mocks.registerUser.failWithInvalidRequest({ email: 'invalid-blank' });
-
-        try {
-          yield client.registerUser('', '123456789', '351');
-
-          should.fail();
-        } catch (e) {
-          e.should.be.instanceOf(AuthyInvalidRequestError);
-          e.message.should.equal('User was not valid.');
-          e.errors.should.eql({ message: 'User was not valid.', email: 'is invalid and can\'t be blank' });
-        }
-
-        Validator.prototype.validate.restore();
-      });
-
-      it('should throw an error if `email` is invalid', function *() {
-        sinon.stub(Validator.prototype, 'validate', function() { return true; });
-
-        mocks.registerUser.failWithInvalidRequest({ email: 'invalid' });
-
-        try {
-          yield client.registerUser('foo', '123456789', '351');
-
-          should.fail();
-        } catch (e) {
-          e.should.be.instanceOf(AuthyInvalidRequestError);
-          e.message.should.equal('User was not valid.');
-          e.errors.should.eql({ message: 'User was not valid.', email: 'is invalid' });
-        }
-
-        Validator.prototype.validate.restore();
-      });
-
-      it('should throw an error if `cellphone` is missing', function *() {
-        sinon.stub(Validator.prototype, 'validate', function() { return true; });
-
-        mocks.registerUser.failWithInvalidRequest({ cellphone: 'invalid' });
-
-        try {
-          yield client.registerUser('foo@bar.com', '', '351');
-
-          should.fail();
-        } catch (e) {
-          e.should.be.instanceOf(AuthyInvalidRequestError);
-          e.message.should.equal('User was not valid.');
-          e.errors.should.eql({ message: 'User was not valid.', cellphone: 'is invalid' });
-        }
-
-        Validator.prototype.validate.restore();
-      });
-
-      it('should throw an error if `cellphone` is invalid', function *() {
-        sinon.stub(Validator.prototype, 'validate', function() { return true; });
-
-        mocks.registerUser.failWithInvalidRequest({ cellphone: 'invalid' });
-
-        try {
-          yield client.registerUser('foo@bar.com', 'FOO', '351');
-
-          should.fail();
-        } catch (e) {
-          e.should.be.instanceOf(AuthyInvalidRequestError);
-          e.message.should.equal('User was not valid.');
-          e.errors.should.eql({ message: 'User was not valid.', cellphone: 'is invalid' });
-        }
-
-        Validator.prototype.validate.restore();
-      });
-
-      it('should throw an error if `country_code` is not supported', function *() {
-        sinon.stub(Validator.prototype, 'validate', function() { return true; });
-
-        mocks.registerUser.failWithInvalidRequest({ country_code: 'unsupported' });
-
-        try {
-          yield client.registerUser('foo@bar.com', '123456789', '12345');
-
-          should.fail();
-        } catch (e) {
-          e.should.be.instanceOf(AuthyInvalidRequestError);
-          e.message.should.equal('User was not valid.');
-          e.errors.should.eql({ message: 'User was not valid.', country_code: 'is not supported' });
-        }
-
-        Validator.prototype.validate.restore();
-      });
+      response.user.id.should.equal(1635);
     });
   });
 
-  describe('#verifyToken', function() {
-    describe('client validation', function() {
-      it('should throw an error if `authy_id` is missing', function *() {
+  describe('verifyToken()', () => {
+    ['authyId', 'token'].forEach(parameter => {
+      it(`should throw an error if \`${parameter}\` is missing`, async () => {
         try {
-          yield client.verifyToken(undefined, 'foobar');
+          await client.verifyToken();
 
           should.fail();
         } catch (e) {
           e.should.be.instanceOf(AuthyValidationFailedError);
-          e.errors.authy_id.show().assert.should.equal('HaveProperty');
-        }
-      });
-
-      it('should throw an error if `authy_id` is invalid', function *() {
-        try {
-          yield client.verifyToken('', 'foobar');
-
-          should.fail();
-        } catch (e) {
-          e.should.be.instanceOf(AuthyValidationFailedError);
-          e.errors.authy_id.should.have.length(2);
-          e.errors.authy_id[0].show().assert.should.equal('Required');
-          e.errors.authy_id[1].show().assert.should.equal('GreaterThan');
-        }
-      });
-
-      it('should throw an error if `token` is missing', function *() {
-        try {
-          yield client.verifyToken(123456, undefined);
-
-          should.fail();
-        } catch (e) {
-          e.should.be.instanceOf(AuthyValidationFailedError);
-          e.errors.token.show().assert.should.equal('HaveProperty');
-        }
-      });
-
-      it('should throw an error if `token` is invalid', function *() {
-        try {
-          yield client.verifyToken(123456, '');
-
-          should.fail();
-        } catch (e) {
-          e.should.be.instanceOf(AuthyValidationFailedError);
-          e.errors.token.should.have.length(2);
-          e.errors.token[0].show().assert.should.equal('Required');
-          e.errors.token[1].show().assert.should.equal('TotpToken');
-        }
-      });
-
-      it('should throw an error if `force` is invalid', function *() {
-        try {
-          yield client.verifyToken(123456, 'foobar', { force: 'true' });
-
-          should.fail();
-        } catch (e) {
-          e.should.be.instanceOf(AuthyValidationFailedError);
-          e.errors.force.should.have.length(1);
-          e.errors.force[0].show().assert.should.equal('Callback');
+          e.errors[parameter].show().assert.should.equal('HaveProperty');
         }
       });
     });
 
-    describe('remote validation', function() {
-      it('should throw an error if the `token` is invalid', function *() {
-        sinon.stub(Validator.prototype, 'validate', function() { return true; });
+    it('should throw an error if `authyId` is invalid', async () => {
+      try {
+        await client.verifyToken({ authyId: '/' });
 
-        mocks.verifyToken.fail();
-
-        try {
-          yield client.verifyToken(1635, 'foo');
-
-          should.fail();
-        } catch (e) {
-          e.should.be.instanceOf(AuthyInvalidTokenError);
-          e.message.should.equal('Token is invalid.');
-          e.body.should.not.be.empty;
-        }
-
-        Validator.prototype.validate.restore();
-      });
-
-      it('should throw an error if the `token` has been used recently', function *() {
-        mocks.verifyToken.failWithRecentlyUsed();
-
-        try {
-          yield client.verifyToken(1635, '0601338');
-
-          should.fail();
-        } catch (e) {
-          e.should.be.instanceOf(AuthyInvalidTokenUsedRecentlyError);
-          e.message.should.equal('Token is invalid. Token was used recently.');
-          e.body.should.not.be.empty;
-        }
-      });
+        should.fail();
+      } catch (e) {
+        e.should.be.instanceOf(AuthyValidationFailedError);
+        e.errors.authyId[0].show().assert.should.equal('AuthyId');
+      }
     });
 
-    it('should accept a `force` parameter', function *() {
-      mocks.verifyToken.succeedWithForce();
+    it('should throw an error if `token` is invalid', async () => {
+      try {
+        await client.verifyToken({ token: '../' });
 
-      yield client.verifyToken(1635, '1234567', { force: true });
+        should.fail();
+      } catch (e) {
+        e.should.be.instanceOf(AuthyValidationFailedError);
+        e.errors.token[0].show().assert.should.equal('TotpToken');
+      }
     });
 
-    it('should not throw an error if the `token` is valid', function *() {
+    it('should throw an error if `force` is invalid', async () => {
+      try {
+        await client.verifyToken({ authyId: 1635, token: 'foobar' }, { force: 'yes' });
+
+        should.fail();
+      } catch (e) {
+        e.should.be.instanceOf(AuthyValidationFailedError);
+        e.errors.force[0].show().assert.should.equal('Boolean');
+      }
+    });
+
+    it('should throw an error if the `token` is invalid', async () => {
+      sinon.stub(Validator.prototype, 'validate', () => { return true; });
+
+      mocks.verifyToken.fail();
+
+      try {
+        await client.verifyToken({ authyId: 1635, token: 'foo' });
+
+        should.fail();
+      } catch (e) {
+        e.should.be.instanceOf(AuthyInvalidTokenError);
+        e.message.should.equal('Token is invalid.');
+        e.body.should.not.be.empty;
+      }
+
+      Validator.prototype.validate.restore();
+    });
+
+    it('should throw an error if the `token` has been used recently', async () => {
+      mocks.verifyToken.failWithRecentlyUsed();
+
+      try {
+        await client.verifyToken({ authyId: 1635, token: '0601338' });
+
+        should.fail();
+      } catch (e) {
+        e.should.be.instanceOf(AuthyInvalidTokenUsedRecentlyError);
+        e.message.should.equal('Token is invalid. Token was used recently.');
+        e.body.should.not.be.empty;
+      }
+    });
+
+    it('should verify the token', async () => {
       mocks.verifyToken.succeed();
 
-      yield client.verifyToken(1635, '1234567');
+      await client.verifyToken({ authyId: 1635, token: '1234567' });
+    });
+
+    it('should support forcing the verification of the token', async () => {
+      mocks.verifyToken.succeedWithForce();
+
+      await client.verifyToken({ authyId: 1635, token: '1234567' }, { force: true });
     });
   });
 
-  describe('#requestSms', function() {
-    describe('client validation', function() {
-      it('should throw an error if `authy_id` is missing', function *() {
-        try {
-          yield client.requestSms(undefined, 'foobar');
-
-          should.fail();
-        } catch (e) {
-          e.should.be.instanceOf(AuthyValidationFailedError);
-          e.errors.authy_id.show().assert.should.equal('HaveProperty');
-        }
-      });
-
-      it('should throw an error if `authy_id` is invalid', function *() {
-        try {
-          yield client.requestSms('', 'foobar');
-
-          should.fail();
-        } catch (e) {
-          e.should.be.instanceOf(AuthyValidationFailedError);
-          e.errors.authy_id.should.have.length(2);
-          e.errors.authy_id[0].show().assert.should.equal('Required');
-          e.errors.authy_id[1].show().assert.should.equal('GreaterThan');
-        }
-      });
-
-      it('should throw an error if `force` is invalid', function *() {
-        try {
-          yield client.requestSms(123456, { force: 'true' });
-
-          should.fail();
-        } catch (e) {
-          e.should.be.instanceOf(AuthyValidationFailedError);
-          e.errors.force.should.have.length(1);
-          e.errors.force[0].show().assert.should.equal('Callback');
-        }
-      });
-
-      it('should throw an error if `shortcode` is invalid', function *() {
-        try {
-          yield client.requestSms(123456, { shortcode: 'true' });
-
-          should.fail();
-        } catch (e) {
-          e.should.be.instanceOf(AuthyValidationFailedError);
-          e.errors.shortcode.should.have.length(1);
-          e.errors.shortcode[0].show().assert.should.equal('Callback');
-        }
-      });
-    });
-
-    describe('remote validation', function() {
-      it('should throw an error if the `authy_id` is invalid ', function *() {
-        sinon.stub(Validator.prototype, 'validate', function() { return true; });
-
-        mocks.requestSms.failWithInvalidAuthyId();
-
-        try {
-          yield client.requestSms(1600);
-        } catch (e) {
-          e.should.be.instanceOf(AuthyHttpError);
-          e.message.should.equal('User not found.');
-          e.body.should.not.be.empty;
-        }
-
-        Validator.prototype.validate.restore();
-      });
-    });
-
-    it('should throw an error if a `cellphone` is not returned', function *() {
-      mocks.requestSms.succeedWithMissingCellphone();
-
+  describe('requestSms()', async () => {
+    it('should throw an error if `authyId` is missing', async () => {
       try {
-        yield client.requestSms(1635);
+        await client.requestSms();
+
+        should.fail();
       } catch (e) {
-        e.should.be.instanceOf(AuthyError);
-        e.message.should.equal('`cellphone` is missing');
-        e.body.should.not.be.empty;
+        e.should.be.instanceOf(AuthyValidationFailedError);
+        e.errors.authyId.show().assert.should.equal('HaveProperty');
       }
     });
 
-    it('should not throw an error if SMS request has been ignored', function *() {
-      mocks.requestSms.succeedWithIgnoredSms();
+    it('should throw an error if `authyId` is invalid', async () => {
+      try {
+        await client.requestSms({ authyId: '/' });
 
-      yield client.requestSms(1635);
+        should.fail();
+      } catch (e) {
+        e.should.be.instanceOf(AuthyValidationFailedError);
+        e.errors.authyId[0].show().assert.should.equal('AuthyId');
+      }
     });
 
-    it('should accept a `force` parameter', function *() {
-      mocks.requestSms.succeedWithForce();
+    it('should throw an error if `force` is invalid', async () => {
+      try {
+        await client.requestSms({ authyId: 1635 }, { force: 'yes' });
 
-      yield client.requestSms(1635, { force: true });
+        should.fail();
+      } catch (e) {
+        e.should.be.instanceOf(AuthyValidationFailedError);
+        e.errors.force[0].show().assert.should.equal('Boolean');
+      }
     });
 
-    it('should accept a `shortcode` parameter', function *() {
-      mocks.requestSms.succeedWithShortcode();
+    it('should throw an error if `shortcode` is invalid', async () => {
+      try {
+        await client.requestSms({ authyId: 1635 }, { shortcode: 'yes' });
 
-      yield client.requestSms(1635, { shortcode: true });
+        should.fail();
+      } catch (e) {
+        e.should.be.instanceOf(AuthyValidationFailedError);
+        e.errors.shortcode[0].show().assert.should.equal('Boolean');
+      }
     });
 
-    it('should send an SMS token', function *() {
+    // describe('remote validation', () => {
+    //   it('should throw an error if the `authyId` is invalid', () => {
+    //     sinon.stub(Validator.prototype, 'validate', () => { return true; });
+
+    //     mocks.requestSms.failWithAuthyIdNotFound();
+
+    //     return client.requestSms(1600)
+    //       .then(should.fail)
+    //       .catch((e) => {
+    //         e.should.be.instanceOf(AuthyHttpError);
+    //         e.message.should.equal('User not found.');
+    //         e.body.should.not.be.empty;
+
+    //         Validator.prototype.validate.restore();
+    //       });
+    //   });
+    // });
+
+    // it('should throw an error if a `cellphone` is not returned', () => {
+    //   mocks.requestSms.succeedWithCellphoneMissing();
+
+    //   return client.requestSms(1635)
+    //     .then(should.fail)
+    //     .catch((e) => {
+    //       e.should.be.instanceOf(AuthyError);
+    //       e.message.should.equal('`cellphone` is missing');
+    //       e.body.should.not.be.empty;
+    //     });
+    // });
+
+    it('should request an SMS to be sent to the cellphone', async () => {
       mocks.requestSms.succeed();
 
-      yield client.requestSms(1635);
+      await client.requestSms({ authyId: 1635 });
+    });
+
+    it('should request an SMS to be sent to the cellphone even if the request is ignored', async () => {
+      mocks.requestSms.succeedWithSmsIgnored();
+
+      await client.requestSms({ authyId: 1635 });
+    });
+
+    it('should support forcing a request to send an SMS to the cellphone', async () => {
+      mocks.requestSms.succeedWithForce();
+
+      await client.requestSms({ authyId: 1635 }, { force: true });
+    });
+
+    it('should support a request to send an SMS to the cellphone using shortcodes', async () => {
+      mocks.requestSms.succeedWithShortcode();
+
+      await client.requestSms({ authyId: 1635 }, { shortcode: true });
     });
   });
 
-  describe('#requestCall', function() {
-    describe('client validation', function() {
-      it('should throw an error if `authy_id` is missing', function *() {
-        try {
-          yield client.requestCall(undefined, 'foobar');
-
-          should.fail();
-        } catch (e) {
-          e.should.be.instanceOf(AuthyValidationFailedError);
-          e.errors.authy_id.show().assert.should.equal('HaveProperty');
-        }
-      });
-
-      it('should throw an error if `authy_id` is invalid', function *() {
-        try {
-          yield client.requestCall('', 'foobar');
-
-          should.fail();
-        } catch (e) {
-          e.should.be.instanceOf(AuthyValidationFailedError);
-          e.errors.authy_id.should.have.length(2);
-          e.errors.authy_id[0].show().assert.should.equal('Required');
-          e.errors.authy_id[1].show().assert.should.equal('GreaterThan');
-        }
-      });
-
-      it('should throw an error if `force` is invalid', function *() {
-        try {
-          yield client.requestCall(123456, { force: 'true' });
-
-          should.fail();
-        } catch (e) {
-          e.should.be.instanceOf(AuthyValidationFailedError);
-          e.errors.force.should.have.length(1);
-          e.errors.force[0].show().assert.should.equal('Callback');
-        }
-      });
-    });
-
-    describe('remote validation', function() {
-      it('should throw an error if the `authy_id` is invalid ', function *() {
-        sinon.stub(Validator.prototype, 'validate', function() { return true; });
-
-        mocks.requestCall.failWithInvalidAuthyId();
-
-        try {
-          yield client.requestCall(1600);
-        } catch (e) {
-          e.should.be.instanceOf(AuthyHttpError);
-          e.message.should.equal('User not found.');
-          e.body.should.not.be.empty;
-        }
-
-        Validator.prototype.validate.restore();
-      });
-    });
-
-    it('should throw an error if a `cellphone` is not returned', function *() {
-      mocks.requestCall.succeedWithMissingCellphone();
-
+  describe('requestCall()', async () => {
+    it('should throw an error if `authyId` is missing', async () => {
       try {
-        yield client.requestCall(1635);
+        await client.requestCall();
+
+        should.fail();
       } catch (e) {
-        e.should.be.instanceOf(AuthyError);
-        e.message.should.equal('`cellphone` is missing');
-        e.body.should.not.be.empty;
+        e.should.be.instanceOf(AuthyValidationFailedError);
+        e.errors.authyId.show().assert.should.equal('HaveProperty');
       }
     });
 
-    it('should not throw an error if call request has been ignored', function *() {
-      mocks.requestCall.succeedWithIgnoredCall();
+    it('should throw an error if `authyId` is invalid', async () => {
+      try {
+        await client.requestCall({ authyId: '/' });
 
-      yield client.requestCall(1635);
+        should.fail();
+      } catch (e) {
+        e.should.be.instanceOf(AuthyValidationFailedError);
+        e.errors.authyId[0].show().assert.should.equal('AuthyId');
+      }
     });
 
-    it('should accept a `force` parameter', function *() {
-      mocks.requestCall.succeedWithForce();
+    it('should throw an error if `force` is invalid', async () => {
+      try {
+        await client.requestCall({ authyId: 1635 }, { force: 'yes' });
 
-      yield client.requestCall(1635, { force: true });
+        should.fail();
+      } catch (e) {
+        e.should.be.instanceOf(AuthyValidationFailedError);
+        e.errors.force[0].show().assert.should.equal('Boolean');
+      }
     });
 
-    it('should call a cellphone', function *() {
+    // describe('remote validation', async () => {
+    //   it('should throw an error if the `authyId` is invalid', () => {
+    //     sinon.stub(Validator.prototype, 'validate', async () => { return true; });
+
+    //     mocks.requestCall.failWithAuthyIdNotFound();
+
+    //     return client.requestCall(1600)
+    //       .then(should.fail)
+    //       .catch(function(e) {
+    //         e.should.be.instanceOf(AuthyUserNotFoundError);
+    //         e.message.should.equal('User not found.');
+    //         e.body.should.not.be.empty;
+
+    //         Validator.prototype.validate.restore();
+    //       });
+    //   });
+    // });
+
+    // it('should throw an error if a `cellphone` is not returned', () => {
+    //   mocks.requestCall.succeedWithCellphoneMissing();
+
+    //   return client.requestCall(1635)
+    //     .then(should.fail)
+    //     .catch(function(e) {
+    //       e.should.be.instanceOf(AuthyError);
+    //       e.message.should.equal('`cellphone` is missing');
+    //       e.body.should.not.be.empty;
+    //     });
+    // });
+
+    it('should request a call to the cellphone', async () => {
       mocks.requestCall.succeed();
 
-      yield client.requestCall(1635);
+      await client.requestCall({ authyId: 1635 });
+    });
+
+    it('should request a call to the cellphone even if the request is ignored', async () => {
+      mocks.requestCall.succeedWithCallIgnored();
+
+      await client.requestCall({ authyId: 1635 });
+    });
+
+    it('should support forcing a request to call the cellphone', async () => {
+      mocks.requestCall.succeedWithForce();
+
+      await client.requestCall({ authyId: 1635 }, { force: true });
     });
   });
 
-  describe('#deleteUser', function() {
-    describe('client validation', function() {
-      it('should throw an error if `authy_id` is missing', function *() {
-        try {
-          yield client.deleteUser(undefined);
+  describe('deleteUser()', () => {
+    it('should throw an error if `authyId` is missing', async () => {
+      try {
+        await client.deleteUser();
 
-          should.fail();
-        } catch (e) {
-          e.should.be.instanceOf(AuthyValidationFailedError);
-          e.errors.authy_id.show().assert.should.equal('HaveProperty');
-        }
-      });
-
-      it('should throw an error if `authy_id` is invalid', function *() {
-        try {
-          yield client.deleteUser('');
-
-          should.fail();
-        } catch (e) {
-          e.should.be.instanceOf(AuthyValidationFailedError);
-          e.errors.authy_id.should.have.length(2);
-          e.errors.authy_id[0].show().assert.should.equal('Required');
-          e.errors.authy_id[1].show().assert.should.equal('GreaterThan');
-        }
-      });
+        should.fail();
+      } catch (e) {
+        e.should.be.instanceOf(AuthyValidationFailedError);
+        e.errors.authyId.show().assert.should.equal('HaveProperty');
+      }
     });
 
-    it('should not throw an error if the user is deleted', function *() {
+    it('should throw an error if `authyId` is invalid', async () => {
+      try {
+        await client.deleteUser({ authyId: '/' });
+
+        should.fail();
+      } catch (e) {
+        e.should.be.instanceOf(AuthyValidationFailedError);
+        e.errors.authyId[0].show().assert.should.equal('AuthyId');
+      }
+    });
+
+    it('should delete the user', async () => {
       mocks.deleteUser.succeed();
 
-      yield client.deleteUser(1635);
+      await client.deleteUser({ authyId: 1635 });
     });
   });
 
-  describe('#getUserStatus', function() {
-    describe('client validation', function() {
-      it('should throw an error if `authy_id` is missing', function *() {
-        try {
-          yield client.getUserStatus(undefined);
+  describe('getUserStatus()', async () => {
+    it('should throw an error if `authyId` is missing', async () => {
+      try {
+        await client.getUserStatus();
 
-          should.fail();
-        } catch (e) {
-          e.should.be.instanceOf(AuthyValidationFailedError);
-          e.errors.authy_id.show().assert.should.equal('HaveProperty');
-        }
-      });
-
-      it('should throw an error if `authy_id` is invalid', function *() {
-        try {
-          yield client.getUserStatus('');
-
-          should.fail();
-        } catch (e) {
-          e.should.be.instanceOf(AuthyValidationFailedError);
-          e.errors.authy_id.should.have.length(2);
-          e.errors.authy_id[0].show().assert.should.equal('Required');
-          e.errors.authy_id[1].show().assert.should.equal('GreaterThan');
-        }
-      });
+        should.fail();
+      } catch (e) {
+        e.should.be.instanceOf(AuthyValidationFailedError);
+        e.errors.authyId.show().assert.should.equal('HaveProperty');
+      }
     });
 
-    it('should return the user status', function *() {
+    it('should throw an error if `authyId` is invalid', async () => {
+      try {
+        await client.getUserStatus({ authyId: '/' });
+
+        should.fail();
+      } catch (e) {
+        e.should.be.instanceOf(AuthyValidationFailedError);
+        e.errors.authyId[0].show().assert.should.equal('AuthyId');
+      }
+    });
+
+    it('should return the user status', async () => {
       mocks.userStatus.succeed();
 
-      (yield client.getUserStatus(1635)).should.have.keys('success', 'message', 'status');
+      const status = await client.getUserStatus({ authyId: 1635 });
+
+      status.should.have.keys('message', 'status', 'success');
     });
   });
 
-  describe('#registerActivity', function() {
-    describe('client validation', function() {
-      it('should throw an error if `authy_id` is missing', function *() {
+  describe('registerActivity()', () => {
+    ['authyId', 'type', 'ip'].forEach(parameter => {
+      it(`should throw an error if \`${parameter}\` is missing`, async () => {
         try {
-          yield client.registerActivity(undefined, 'banned', '86.112.56.34', { reason: 'foo' });
+          await client.registerActivity();
 
           should.fail();
         } catch (e) {
           e.should.be.instanceOf(AuthyValidationFailedError);
-          e.errors.authy_id.show().assert.should.equal('HaveProperty');
-        }
-      });
-
-      it('should throw an error if `authy_id` is invalid', function *() {
-        try {
-          yield client.requestCall('', 'foobar');
-
-          should.fail();
-        } catch (e) {
-          e.should.be.instanceOf(AuthyValidationFailedError);
-          e.errors.authy_id.should.have.length(2);
-          e.errors.authy_id[0].show().assert.should.equal('Required');
-          e.errors.authy_id[1].show().assert.should.equal('GreaterThan');
+          e.errors[parameter].show().assert.should.equal('HaveProperty');
         }
       });
     });
 
-    it('should throw an error if `type` is missing', function *() {
+    it('should throw an error if `authyId` is invalid', async () => {
       try {
-        yield client.registerActivity(123456, undefined, '86.112.56.34', { reason: 'foo' });
+        await client.registerActivity({ authyId: '/' });
 
         should.fail();
       } catch (e) {
         e.should.be.instanceOf(AuthyValidationFailedError);
-        e.errors.type.show().assert.should.equal('HaveProperty');
+        e.errors.authyId[0].show().assert.should.equal('AuthyId');
       }
     });
 
-    it('should throw an error if `type` is invalid', function *() {
+    it('should throw an error if `ip` is invalid', async () => {
       try {
-        yield client.registerActivity(123456, 'kicked', '86.112.56.34', { reason: 'foo' });
+        await client.registerActivity({ ip: 'x.y.z.t' });
 
         should.fail();
       } catch (e) {
         e.should.be.instanceOf(AuthyValidationFailedError);
-        e.errors.type.should.have.length(1);
-        e.errors.type[0].show().assert.should.equal('Choice');
+        e.errors.ip[0].show().assert.should.equal('Ip');
       }
     });
 
-    it('should throw an error if `ip` is missing', function *() {
+    it('should throw an error if `type` is invalid', async () => {
       try {
-        yield client.registerActivity(123456, 'banned', undefined, { reason: 'foo' });
+        await client.registerActivity({ type: 'kicked' });
 
         should.fail();
       } catch (e) {
         e.should.be.instanceOf(AuthyValidationFailedError);
-        e.errors.ip.show().assert.should.equal('HaveProperty');
+        e.errors.type[0].show().assert.should.equal('Activity');
       }
     });
 
-    it('should throw an error if `ip` is invalid', function *() {
-      try {
-        yield client.registerActivity(123456, 'banned', 'x.y.z.a', { reason: 'foo' });
-
-        should.fail();
-      } catch (e) {
-        e.should.be.instanceOf(AuthyValidationFailedError);
-        e.errors.ip.should.have.length(1);
-        e.errors.ip[0].show().assert.should.equal('Callback');
-      }
-    });
-
-    it('should throw an error if `data` is missing', function *() {
-      try {
-        yield client.registerActivity(123456, 'banned', '86.112.56.34', undefined);
-
-        should.fail();
-      } catch (e) {
-        e.should.be.instanceOf(AuthyValidationFailedError);
-        e.errors.data.show().assert.should.equal('HaveProperty');
-      }
-    });
-
-    it('should register the activity', function *() {
+    it('should register the activity', async () => {
       mocks.registerActivity.succeed({
         matchBody: {
+          'data[reason]': 'foo',
           'ip': '86.112.56.34',
-          'type': 'banned',
-          'data[reason]': 'foo'
+          'type': 'banned'
         }
       });
 
-      yield client.registerActivity(1635, 'banned', '86.112.56.34', { reason: 'foo' });
+      await client.registerActivity({ authyId: 1635, data: { reason: 'foo' }, ip: '86.112.56.34', type: 'banned' });
     });
   });
 
-  describe('#getApplicationDetails', function() {
-    it('should return the application details', function *() {
+  describe('getApplicationDetails()', () => {
+    it('should return the application details', async () => {
       mocks.applicationDetails.succeed();
 
-      (yield client.getApplicationDetails()).should.have.keys('message', 'success', 'app');
+      const details = await client.getApplicationDetails();
+
+      details.should.have.keys('app', 'message', 'success');
     });
   });
 
-  describe('#getApplicationStatistics', function() {
-    it('should return the application statistics', function *() {
+  describe('getApplicationStatistics()', () => {
+    it('should return the application statistics', async () => {
       mocks.applicationStatistics.succeed();
 
-      (yield client.getApplicationStatistics()).should.have.keys('message', 'count', 'total_users', 'app_id', 'success', 'stats');
+      const statistics = await client.getApplicationStatistics();
+
+      statistics.should.have.keys('app_id', 'count', 'message', 'total_users', 'stats', 'success');
+      statistics.stats.should.matchEach(value => value.should.have.keys('api_calls_count', 'auths_count', 'calls_count', 'month', 'sms_count', 'users_count', 'year'));
     });
   });
 });

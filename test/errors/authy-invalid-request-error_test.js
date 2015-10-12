@@ -1,12 +1,14 @@
 
 /**
- * Test dependencies.
+ * Module dependencies.
  */
 
-require('should');
+var AuthyHttpError = require('../../lib/errors/authy-unauthorized-access-error');
+var AuthyInvalidTokenError = require('../../lib/errors/authy-invalid-token-error');
 
-var AuthyHttpError = require('../../errors/authy-unauthorized-access-error');
-var AuthyInvalidTokenError = require('../../errors/authy-invalid-token-error');
+/**
+ * Test `AuthyInvalidRequestError`.
+ */
 
 describe('AuthyInvalidRequestError', function() {
   it('should inherit from `AuthyHttpError`', function() {

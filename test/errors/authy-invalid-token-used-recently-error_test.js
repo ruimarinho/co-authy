@@ -1,12 +1,14 @@
 
 /**
- * Test dependencies.
+ * Module dependencies.
  */
 
-require('should');
+var AuthyInvalidTokenError = require('../../lib/errors/authy-unauthorized-access-error');
+var AuthyInvalidTokenUsedRecentlyError = require('../../lib/errors/authy-invalid-token-used-recently-error');
 
-var AuthyInvalidTokenError = require('../../errors/authy-unauthorized-access-error');
-var AuthyInvalidTokenUsedRecentlyError = require('../../errors/authy-invalid-token-used-recently-error');
+/**
+ * Test `AuthyInvalidTokenUsedRecentlyError`.
+ */
 
 describe('AuthyInvalidTokenUsedRecentlyError', function() {
   it('should inherit from `AuthyInvalidTokenError`', function() {

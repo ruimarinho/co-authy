@@ -55,6 +55,7 @@ var mockVerifyToken = function mockVerifyToken(statusCode, options) {
       path = path.replace(/\/verify\/(.*)\//, '/verify/{token}/');
       path = path.replace(/api_key=[^&]*/g, 'api_key={apiKey}');
       path = path.replace(/\{token\}\/.*\?api_key/, '{token}/{authyId}?api_key');
+      path = path.replace(/&action=[^&]*/g, '');
       path = path.replace(/&force=[^&]*/g, '');
 
       return path;
@@ -69,6 +70,14 @@ var mockVerifyToken = function mockVerifyToken(statusCode, options) {
 
 module.exports.succeed = function(options) {
   return mockVerifyToken(200, options);
+};
+
+/**
+ * Expose a request that will `succeed` with the `action` parameter set.
+ */
+
+module.exports.succeedWithAction = function(action) {
+  return mockVerifyToken(200, { action: action });
 };
 
 /**

@@ -70,6 +70,7 @@ var mockRequestSms = function mockRequestSms(statusCode, options) {
 
       path = path.replace(/\/sms\/.*\?api_key/, '/sms/{authyId}?api_key');
       path = path.replace(/api_key=[^&]*/g, 'api_key={apiKey}');
+      path = path.replace(/&action=[^&]*/g, '');
       path = path.replace(/&force=[^&]*/g, '');
       path = path.replace(/&shortcode=[^&]*/g, '');
 
@@ -85,6 +86,14 @@ var mockRequestSms = function mockRequestSms(statusCode, options) {
 
 module.exports.succeed = function(options) {
   return mockRequestSms(200, options);
+};
+
+/**
+ * Expose a request that will `succeed` with the `action` parameter set.
+ */
+
+module.exports.succeedWithAction = function(action) {
+  return mockRequestSms(200, { action: action });
 };
 
 /**

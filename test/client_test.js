@@ -352,6 +352,18 @@ describe('Client', function() {
         }
       });
 
+      it('should throw an error if `action` is invalid', function *() {
+        try {
+          yield client.verifyToken(123456, 'foobar', { action: true });
+
+          should.fail();
+        } catch (e) {
+          e.should.be.instanceOf(AuthyValidationFailedError);
+          e.errors.action.should.have.length(1);
+          e.errors.action[0].show().assert.should.equal('Callback');
+        }
+      });
+
       it('should throw an error if `force` is invalid', function *() {
         try {
           yield client.verifyToken(123456, 'foobar', { force: 'true' });
@@ -399,6 +411,12 @@ describe('Client', function() {
       });
     });
 
+    it('should accept a `action` parameter', function *() {
+      mocks.verifyToken.succeedWithAction();
+
+      yield client.verifyToken(1635, '1234567', { action: 'foobar' });
+    });
+
     it('should accept a `force` parameter', function *() {
       mocks.verifyToken.succeedWithForce();
 
@@ -435,6 +453,18 @@ describe('Client', function() {
           e.errors.authy_id.should.have.length(2);
           e.errors.authy_id[0].show().assert.should.equal('Required');
           e.errors.authy_id[1].show().assert.should.equal('GreaterThan');
+        }
+      });
+
+      it('should throw an error if `action` is invalid', function *() {
+        try {
+          yield client.requestSms(123456, { action: true });
+
+          should.fail();
+        } catch (e) {
+          e.should.be.instanceOf(AuthyValidationFailedError);
+          e.errors.action.should.have.length(1);
+          e.errors.action[0].show().assert.should.equal('Callback');
         }
       });
 
@@ -497,6 +527,12 @@ describe('Client', function() {
       mocks.requestSms.succeedWithIgnoredSms();
 
       yield client.requestSms(1635);
+    });
+
+    it('should accept a `action` parameter', function *() {
+      mocks.requestSms.succeedWithAction('foobar');
+
+      yield client.requestSms(1635, { action: 'foobar' });
     });
 
     it('should accept a `force` parameter', function *() {

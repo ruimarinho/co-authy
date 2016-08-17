@@ -4,7 +4,10 @@ An Authy client for node.js using generators via [co](https://github.com/visionm
 
 ## Status
 
-[![NPM version][npm-image]][npm-url]
+This module has been deprecated in favour of [authy-client](https://github.com/seegno/authy-client), a complete Authy client with support for TOTP, OneTouch, Phone Verification and Phone Intelligence APIs.
+
+[![maintenance status][maintenance-image]]()
+[![npm version][npm-image]][npm-url]
 [![build status][travis-image]][travis-url]
 
 ## Installation
@@ -13,9 +16,7 @@ An Authy client for node.js using generators via [co](https://github.com/visionm
 $ npm install co-authy
 ```
 
-  To use `co-authy` you must be running __node 0.11.9__ or higher for generator support and node must be ran with the `--harmony` flag.
-
-**NOTE: this module does not have a stable API yet. Use with precaution and at your own risk in production environments. Version 1.0.0 will be released once the API has been finalized.**
+To use `co-authy` you must be running __node 0.11.9__ or higher for generator support and node must be ran with the `--harmony` flag.
 
 ## API
 
@@ -152,7 +153,8 @@ $ NOCK_OFF=true AUTHY_KEY=<secret key> npm test
 
 MIT
 
-[npm-image]: https://img.shields.io/npm/v/co-authy.svg?style=flat
+[maintenance-image]: https://img.shields.io/maintenance/no/2016.svg?style=flat-square
+[npm-image]: https://img.shields.io/npm/v/co-authy.svg?style=flat-square
 [npm-url]: https://npmjs.org/package/co-authy
-[travis-image]: https://img.shields.io/travis/seegno/co-authy.svg?style=flat
+[travis-image]: https://img.shields.io/travis/seegno/co-authy/v0.0.14.svg?style=flat-square
 [travis-url]: https://travis-ci.org/seegno/co-authy
